@@ -1,0 +1,441 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=11,IE=10,IE=9,IE=8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-title" content="极客教程">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+<title>Vulkan 固有功能|极客教程</title><link rel='stylesheet' id='Katex-css'  href='css/katex.min.css?ver=0.10.0-beta' type='text/css' media='all' />
+<link rel='stylesheet' id='megamenu-css'   href='css/style.css?ver=e86352' type='text/css' media='all' />
+<link rel='stylesheet' id='dashicons-css'  href='css/dashicons.min.css?ver=4.9.20' type='text/css' media='all' />
+<link rel='stylesheet' id='_bootstrap-css'  href='css/bootstrap.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_fontawesome-css'  href='css/font-awesome.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_main-css'  href='css/main.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='fixedtoc-style-css'  href='css/ftoc.min.css?ver=3.1.24' type='text/css' media='all' />
+<style id='fixedtoc-style-inline-css' type='text/css'>
+#ftwp-container.ftwp-wrap #ftwp-contents { width: 255px; height: auto; } #ftwp-container.ftwp-wrap #ftwp-trigger { width: 50px; height: 50px; font-size: 30px; } #ftwp-container #ftwp-trigger.ftwp-border-medium { font-size: 29px; } #ftwp-container.ftwp-wrap #ftwp-header { font-size: 16px; font-family: inherit; } #ftwp-container.ftwp-wrap #ftwp-header-title { font-weight: bold; } #ftwp-container.ftwp-wrap #ftwp-list { font-size: 14px; font-family: inherit; } #ftwp-container #ftwp-list.ftwp-liststyle-decimal .ftwp-anchor::before { font-size: 14px; } #ftwp-container #ftwp-list.ftwp-strong-first>.ftwp-item>.ftwp-anchor .ftwp-text { font-size: 15.4px; } #ftwp-container #ftwp-list.ftwp-strong-first.ftwp-liststyle-decimal>.ftwp-item>.ftwp-anchor::before { font-size: 15.4px; } #ftwp-container.ftwp-wrap #ftwp-trigger { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-trigger { border-color: rgba(51,51,51,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents { border-color: rgba(51,51,51,0.95); } #ftwp-container.ftwp-wrap #ftwp-header { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents:hover #ftwp-header { background: #f3f3f3; } #ftwp-container.ftwp-wrap #ftwp-list { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents:hover #ftwp-list { background: #f3f3f3; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-anchor:hover { color: #00A368; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-anchor:focus, #ftwp-container.ftwp-wrap #ftwp-list .ftwp-active, #ftwp-container.ftwp-wrap #ftwp-list .ftwp-active:hover { color: #fff; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-text::before { background: rgba(9,168,0,0.95); } .ftwp-heading-target::before { background: rgba(9,168,0,0.95); }
+</style>        <style>
+            .eaa-clean {
+                padding: 0 !important;
+                border: none !important;
+            }            .eaa-ad.alignleft {
+                margin-right: 10px;
+            }            .eaa-ad.alignright {
+                margin-left: 10px;
+            }
+            .eaa-ad.debug{
+                background:peachpuff;
+                border:solid 2px #FF0000;
+                box-sizing: border-box;
+            }        </style>		
+<link rel='prev' title='VSCode 支持Markdown' href='https://geek-docs.com/vscode/vscode-tutorials/vscode-markdown-support.html' />
+<link rel='next' title='Android Q 音频获取指南' href='https://geek-docs.com/android/android-q/android-q-audio-guide.html' />
+<link rel="canonical" href="vulkan-fixed-functions.html"/><meta name="keywords" content="Vulkan 固有功能">
+<meta name="description" content="Vulkan 固有功能，早起的图形API在图形渲染管线的许多阶段提供了默认的状态。在Vulkan中，从viewport的大小到混色函数，需要凡事做到亲历亲为。在本章节中我们会填充有关固有功能操作的所有结构体。  顶点输入  VkPipelineVertexInputStateCreateInfo结构体描述了顶点数据的格式，该结构体数据传递到vertex shader中。它以两种方式进行描述:   ">
+<style>.container{max-width:1780px}a:hover, .site-navbar li:hover > a, .site-navbar li.active a:hover, .site-navbar a:hover, .search-on .site-navbar li.navto-search a, .topbar a:hover, .site-nav li.current-menu-item > a, .site-nav li.current-menu-parent > a, .site-search-form a:hover, .branding-primary .btn:hover, .title .more a:hover, .excerpt h2 a:hover, .excerpt .meta a:hover, .excerpt-minic h2 a:hover, .excerpt-minic .meta a:hover, .article-content .wp-caption:hover .wp-caption-text, .article-content a, .article-nav a:hover, .relates a:hover, .widget_links li a:hover, .widget_categories li a:hover, .widget_ui_comments strong, .widget_ui_posts li a:hover .text, .widget_ui_posts .nopic .text:hover , .widget_meta ul a:hover, .tagcloud a:hover, .textwidget a, .textwidget a:hover, .sign h3, #navs .item li a, .url, .url:hover, .excerpt h2 a:hover span, .widget_ui_posts a:hover .text span, .widget-navcontent .item-01 li a:hover span, .excerpt-minic h2 a:hover span, .relates a:hover span{color: #09a800;}.btn-primary, .label-primary, .branding-primary, .post-copyright:hover, .article-tags a, .pagination ul > .active > a, .pagination ul > .active > span, .pagenav .current, .widget_ui_tags .items a:hover, .sign .close-link, .pagemenu li.active a, .pageheader, .resetpasssteps li.active, #navs h2, #navs nav, .btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary, .tag-clouds a:hover{background-color: #09a800;}.btn-primary, .search-input:focus, #bdcs .bdcs-search-form-input:focus, #submit, .plinks ul li a:hover,.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary{border-color: #09a800;}.search-btn, .label-primary, #bdcs .bdcs-search-form-submit, #submit, .excerpt .cat{background-color: #09a800;}.excerpt .cat i{border-left-color:#09a800;}@media (max-width: 720px) {.site-navbar li.active a, .site-navbar li.active a:hover, .m-nav-show .m-icon-nav{color: #09a800;}}@media (max-width: 480px) {.pagination ul > li.next-page a{background-color:#09a800;}}.post-actions .action.action-like,.pagemenu li.current-menu-item > a{background-color: #09a800;}.catleader h1{border-left-color: #09a800;}.loop-product-filters ul .current-cat>a{color: #09a800;}.tblside-roll h3{background-color:#09a800 !important;}.tblside-roll li.active a{color:#09a800 !important;border-left-color:#09a800 !important;}.single .content, .category .content{margin-right: 300px !important;margin-left: 300px !important;}
+.tblside{position: relative;float: left;width: 300px;margin-left: -100%;overflow:hidden;}
+.tblside-roll{margin-bottom: 15px;}
+.tblside-ads{margin-bottom: 15px;}
+.tblside-ads h3{margin:0px 0px 15px 0px;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tblside-roll li{margin-bottom: 0;}
+.tblside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:break-word;}
+.tblside-roll li.cat-item{margin-left: 0;}
+.tblside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tblside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+.tbrside{position: relative;float: right;width: 300px;margin-left: -100%;overflow:hidden;}
+.tbrside-roll{margin-bottom: 15px;}
+.tbrside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tbrside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tbrside-roll li{margin-bottom: 0;}
+.tbrside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.tbrside-roll li.cat-item{margin-left: 0;}
+.tbrside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tbrside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+@media (max-width:1100px){
+	.single .content, .category .content{margin-left: 0 !important;margin-right: 0 !important;}
+	.tblside{display: none !important;}
+	.tbrside{display: none !important;}
+}</style><style type="text/css">/** Mega Menu CSS: fs **/</style>
+<link rel="shortcut icon" href="image/favicon.ico">
+<!--[if lt IE 9]><script src="https://geek-docs.com/wp-content/themes/dux/js/libs/html5.min.js"></script><![endif]-->
+</head>
+<body class="post-template-default single single-post postid-3333 single-format-standard m-excerpt-cat topbar-off comment-open site-layout-3 text-justify-on mega-menu-nav has-ftoc">
+<header class="header">
+	<div class="container">
+		<div class="logo"><a href="https://geek-docs.com/" title="极客教程 - 以工匠精神打磨精品教程"><img src="image/static/logo.png" alt="极客教程 - 以工匠精神打磨精品教程">极客教程</a></div>				<ul class="site-nav site-navbar">
+			<div id="mega-menu-wrap-nav" class="mega-menu-wrap"><div class="mega-menu-toggle"><div class="mega-toggle-blocks-left"></div><div class="mega-toggle-blocks-center"></div><div class="mega-toggle-blocks-right"><div class='mega-toggle-block mega-menu-toggle-animated-block mega-toggle-block-0' id='mega-toggle-block-0'><button aria-label="Toggle Menu" class="mega-toggle-animated mega-toggle-animated-slider" type="button" aria-expanded="false">
+                  <span class="mega-toggle-animated-box">
+                    <span class="mega-toggle-animated-inner"></span>
+                  </span>
+                </button></div></div></div><ul id="mega-menu-nav" class="mega-menu max-mega-menu mega-menu-horizontal mega-no-js" data-event="hover" data-effect="disabled" data-effect-speed="200" data-effect-mobile="disabled" data-effect-speed-mobile="0" data-mobile-force-width="false" data-second-click="go" data-document-click="collapse" data-vertical-behaviour="standard" data-breakpoint="768" data-unbind="true" data-mobile-state="collapse_all" data-hover-intent-timeout="300" data-hover-intent-interval="100"><li class='mega-menu-item mega-menu-item-type-custom mega-menu-item-object-custom mega-menu-item-has-children mega-align-bottom-left mega-menu-flyout mega-menu-item-18090' id='mega-menu-item-18090'><a class="mega-menu-link" aria-haspopup="true" aria-expanded="false" tabindex="0">基础编程<span class="mega-indicator"></span></a>						<i class="fa fa-bars m-icon-nav"></i>
+			</div>
+</header>
+<div class="site-search">
+	<div class="container">
+		<form method="get" class="site-search-form" action="https://geek-docs.com/" ><input class="search-input" name="s" type="text" placeholder="输入关键字" value=""><button class="search-btn" type="submit"><i class="fa fa-search"></i></button></form>	</div>
+</div>	<div class="breadcrumbs">
+		<div class="container">当前位置：<a href="/">极客教程</a> <small>></small> <a href="/">Vulkan</a> <small>></small> <a href="">Vulkan 教程</a> <small>></small> Vulkan 固有功能</div>
+	</div>
+<section class="container">
+	<div class="content-wrap">
+	<div class="content">
+				<header class="article-header">
+			<h1 class="article-title"><a href="vulkan-fixed-functions.html">Vulkan 固有功能</a></h1>
+		</header>
+				
+				<nav class="article-nav">
+			<div class="asb aub-post aub-post-01">
+
+</div>			<span class="article-nav-prev">上一篇 <a href="https://geek-docs.com/vscode/vscode-tutorials/vscode-markdown-support.html" rel="prev">VSCode 支持Markdown</a></span>
+			<span class="article-nav-next">下一篇 <a href="https://geek-docs.com/android/android-q/android-q-audio-guide.html" rel="next">Android Q 音频获取指南</a></span>
+		</nav>
+				
+		<article class="article-content">
+			<div id="ftwp-container" class="ftwp-wrap ftwp-hidden-state ftwp-minimize ftwp-middle-left"><button type="button" id="ftwp-trigger" class="ftwp-shape-round ftwp-border-medium" title="单击以最大化目录"><span class="ftwp-trigger-icon ftwp-icon-menu"></span></button><nav id="ftwp-contents" class="ftwp-shape-round ftwp-border-thin"><header id="ftwp-header"><span id="ftwp-header-control" class="ftwp-icon-menu"></span><button type="button" id="ftwp-header-minimize" class="ftwp-icon-minimize" aria-labelledby="ftwp-header-title" aria-label="Expand or collapse"></button><h3 id="ftwp-header-title">文章目录</h3></header><ol id="ftwp-list" class="ftwp-liststyle-decimal ftwp-effect-bounce-to-right ftwp-list-nest ftwp-strong-first ftwp-colexp ftwp-colexp-icon"><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-1"><span class="ftwp-text">顶点输入</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-2"><span class="ftwp-text">输入组件</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-3"><span class="ftwp-text">视窗和裁剪</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-4"><span class="ftwp-text">光栅化</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-5"><span class="ftwp-text">重采样</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-6"><span class="ftwp-text">深度和模板测试</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-7"><span class="ftwp-text">颜色混合</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-8"><span class="ftwp-text">动态修改</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-9"><span class="ftwp-text">管道布局</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-10"><span class="ftwp-text">结论</span></a></li></ol></nav></div>
+<div id="ftwp-postcontent"><p><strong>Vulkan 固有功能</strong>，早起的图形API在图形渲染管线的许多阶段提供了默认的状态。在<code>Vulkan</code>中，从<code>viewport</code>的大小到混色函数，需要凡事做到亲历亲为。在本章节中我们会填充有关固有功能操作的所有结构体。</p>
+<h2 id="ftoc-heading-1" class="ftwp-heading">顶点输入</h2>
+<p><strong>VkPipelineVertexInputStateCreateInfo</strong>结构体描述了顶点数据的格式，该结构体数据传递到<code>vertex shader</code>中。它以两种方式进行描述:</p>
+<ul>
+<li><code>Bindings</code>:根据数据的间隙，确定数据是每个顶点或者是每个instance(<strong>instancing</strong>)</li>
+<li><code>Attribute</code> 描述:描述将要进行绑定及加载属性的顶点着色器中的相关属性类型。</li>
+</ul>
+<p>因为我们将顶点数据硬编码到<code>vertex shader</code>中，所以我们将要填充的结构体没有顶点数据去加载。我们将会在<code>vertex buffer</code>章节中回来操作。</p>
+<pre><code class="language-cpp  line-numbers">VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
+vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+vertexInputInfo.vertexBindingDescriptionCount = 0;
+vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
+vertexInputInfo.vertexAttributeDescriptionCount = 0;
+vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
+</code></pre>
+<p><strong>pVertexBindingDescriptions</strong>和<strong>pVertexAttributeDescriptions</strong>成员指向结构体数组，用于进一步描述加载的顶点数据信息。在<strong>createGraphicsPipeline</strong>函数中的<strong>shaderStages</strong>数组后添加该结构体。</p>
+<h2 id="ftoc-heading-2" class="ftwp-heading">输入组件</h2>
+<p><strong>VkPipelineInputAssemblyStateCreateInfo</strong>结构体描述两件事情:顶点数据以什么类型的几何图元拓扑进行绘制及是否启用顶点索重新开始图元。图元的拓扑结构类型<strong>topology</strong>枚举值如下:</p>
+<ul>
+<li><strong>VK_PRIMITIVE_TOPOLOGY_POINT_LIST</strong>: 顶点到点</li>
+<li><strong>VK_PRIMITIVE_TOPOLOGY_LINE_LIST</strong>: 两点成线，顶点不共用</li>
+<li><strong>VK_PRIMITIVE_TOPOLOGY_LINE_STRIP</strong>: 两点成线，每个线段的结束顶点作为下一个线段的开始顶点</li>
+<li><strong>VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST</strong>: 三点成面，顶点不共用</li>
+<li><strong>VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP</strong>: 每个但教训的第二个、第三个顶点都作为下一个三角形的前两个顶点</li>
+</ul>
+<p>正常情况下，顶点数据按照缓冲区中的序列作为索引，但是也可以通过element buffer缓冲区自行指定顶点数据的索引。通过复用顶点数据提升性能。如果设置<strong>primitiveRestartEnable</strong>成员为<strong>VK_TRUE</strong>，可以通过<strong>0xFFFF</strong>或者<strong>0xFFFFFFFF</strong>作为特殊索引来分解线和三角形在<code>_STRIP</code>模式下的图元拓扑结构。</p>
+<p>通过本教程绘制三角形，所以我们坚持按照如下格式填充数据结构:</p>
+<pre><code class="language-cpp  line-numbers">VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
+inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+inputAssembly.primitiveRestartEnable = VK_FALSE;
+</code></pre>
+<h2 id="ftoc-heading-3" class="ftwp-heading">视窗和裁剪</h2>
+<p>Viewport用于描述framebuffer作为渲染输出结果目标区域。它的数值在本教程中总是设置在<code>(0, 0)</code>和<code>(width, height)</code>。</p>
+<pre><code class="language-cpp  line-numbers">VkViewport viewport = {};
+viewport.x = 0.0f;
+viewport.y = 0.0f;
+viewport.width = (float) swapChainExtent.width;
+viewport.height = (float) swapChainExtent.height;
+viewport.minDepth = 0.0f;
+viewport.maxDepth = 1.0f;
+</code></pre>
+<p>记得交换链和它的images图像大小<strong>WIDTH</strong>和<strong>HEIGHT</strong>会根据不同的窗体而不同。交换链图像将会在帧缓冲区framebuffers使用，所以我们应该坚持它们的大小。</p>
+<p><strong>minDepth</strong>和<strong>maxDepth</strong>数值指定framebuffer中深度的范围。这些数值必须收敛在<code>[0.0f, 1.0f]</code>区间冲，但是<strong>minDepth</strong>可能会大于<strong>maxDepth</strong>。如果你不做任何指定，建议使用标准的数值<strong>0.0</strong>f和<strong>1.0f</strong>。</p>
+<p><code>viewports</code>定义了image图像到framebuffer帧缓冲区的转换关系，裁剪矩形定义了哪些区域的像素被存储。任何在裁剪巨型外的像素都会在光栅化阶段丢弃。它们的功能更像过滤器而不是定义转换关系。这个区别如下图所示。需要注意的是，对于图像比<code>viewport</code>尺寸大的情形，左侧的裁剪矩形只是众多可能的一个表现。<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/1113490-20170610000800575-692363550.png" alt="Vulkan fixed functions" title="Vulkan fixed functions" /><br />
+在本教程中我们需要将图像绘制到完整的帧缓冲区<code>framebuffer</code>中，所以我们定义裁剪矩形覆盖到整体图像:</p>
+<pre><code class="language-cpp  line-numbers">VkRect2D scissor = {};
+scissor.offset = {0, 0};
+scissor.extent = swapChainExtent;
+</code></pre>
+<p>viewport和裁剪矩形需要借助<strong>VkPipelineViewportStateCreateInfo</strong>结构体联合使用。可以使用多<code>viewports</code>和裁剪矩形在一些图形卡，通过数组引用。使用该特性需要GPU支持该功能，具体看逻辑设备的创建。</p>
+<pre><code class="language-cpp  line-numbers">VkPipelineViewportStateCreateInfo viewportState = {};
+viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+viewportState.viewportCount = 1;
+viewportState.pViewports = &amp;viewport;
+viewportState.scissorCount = 1;
+viewportState.pScissors = &amp;scissor;
+</code></pre>
+<h2 id="ftoc-heading-4" class="ftwp-heading">光栅化</h2>
+<p>光栅化通过顶点着色器及具体的几何算法将顶点进行塑形，并将图形传递到片段着色器进行着色工作。它也会执行深度测试<strong>depth testing</strong>、面裁切<strong>face culling</strong>和裁剪测试，它可以对输出的片元进行配置，决定是否输出整个图元拓扑或者是边框(线框渲染)。所有的配置通过<strong>VkPipelineRasterizationStateCreateInfo</strong>结构体定义。</p>
+<pre><code class="language-cpp  line-numbers">VkPipelineRasterizationStateCreateInfo rasterizer = {};
+rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+rasterizer.depthClampEnable = VK_FALSE;
+</code></pre>
+<p>它的<strong>depthClampEnable</strong>设置为<strong>VK_TRUE</strong>，超过远近裁剪面的片元会进行收敛，而不是丢弃它们。它在特殊的情况下比较有用，像阴影贴图。使用该功能需要得到<code>GPU</code>的支持。</p>
+<pre><code class="language-cpp  line-numbers">rasterizer.rasterizerDiscardEnable = VK_FALSE;
+</code></pre>
+<p>如果<strong>rasterizerDiscardEnable</strong>设置为<strong>VK_TRUE</strong>，那么几何图元永远不会传递到光栅化阶段。这是基本的禁止任何输出到framebuffer帧缓冲区的方法。</p>
+<pre><code class="language-cpp  line-numbers">rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+</code></pre>
+<p><strong>polygonMode</strong>决定几何产生图片的内容。下列有效模式:</p><div id="eaa_after_nth_p" class="eaa-wrapper eaa_after_nth_p eaa_desktop"><div class="eaa-ad  " style=""></div></div>
+<ul>
+<li><strong>VK_POLYGON_MODE_FILL</strong>: 多边形区域填充</li>
+<li><strong>VK_POLYGON_MODE_LINE</strong>: 多边形边缘线框绘制</li>
+<li><strong>VK_POLYGON_MODE_POINT</strong>: 多边形顶点作为描点绘制</li>
+</ul>
+<p>使用任何模式填充需要开启GPU功能。</p>
+<pre><code class="language-cpp  line-numbers">rasterizer.lineWidth = 1.0f;
+</code></pre>
+<p><strong>lineWidth</strong>成员是直接填充的，根据片元的数量描述线的宽度。最大的线宽支持取决于硬件，任何大于<strong>1.0</strong>的线宽需要开启GPU的<strong>wideLines</strong>特性支持。</p>
+<pre><code class="language-cpp  line-numbers">rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+</code></pre>
+<p><strong>cullMode</strong>变量用于决定面裁剪的类型方式。可以禁止<code>culling</code>，裁剪<code>front faces</code>，<code>cull back faces</code> 或者全部。<strong>frontFace</strong>用于描述作为<code>front-facing</code>面的顶点的顺序，可以是顺时针也可以是逆时针。</p>
+<pre><code class="language-cpp  line-numbers">rasterizer.depthBiasEnable = VK_FALSE;
+rasterizer.depthBiasConstantFactor = 0.0f; // Optional
+rasterizer.depthBiasClamp = 0.0f; // Optional
+rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
+</code></pre>
+<p>光栅化可以通过添加常量或者基于片元的斜率来更改深度值。一些时候对于阴影贴图是有用的，但是我们不会在章节中使用，设置<strong>depthBiasEnable</strong>为<strong>VK_FALSE</strong>。</p>
+<h2 id="ftoc-heading-5" class="ftwp-heading">重采样</h2>
+<p><strong>VkPipelineMultisampleStateCreateInfo</strong>结构体用于配置多重采样。所谓多重采样是抗锯齿<strong>anti-aliasing</strong>的一种实现。它通过组合多个多边形的片段着色器结果，光栅化到同一个像素。这主要发生在边缘，这也是最引人注目的锯齿出现的地方。如果只有一个多边形映射到像素是不需要多次运行片段着色器进行采样的，相比高分辨率来说，它会花费较低的开销。开启该功能需要GPU支持。</p>
+<pre><code class="language-cpp  line-numbers">VkPipelineMultisampleStateCreateInfo multisampling = {};
+multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+multisampling.sampleShadingEnable = VK_FALSE;
+multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+multisampling.minSampleShading = 1.0f; // Optional
+multisampling.pSampleMask = nullptr; // Optional
+multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
+multisampling.alphaToOneEnable = VK_FALSE; // Optional
+</code></pre>
+<p>在本教程中我们不会使用多重采样，但是可以随意的尝试，具体的参数请参阅规范。</p>
+<h2 id="ftoc-heading-6" class="ftwp-heading">深度和模板测试</h2>
+<p>如果使用depth 或者 stencil缓冲区，需要使用<strong>VkPipelineDepthStencilStateCreateInfo</strong>配置。我们现在不需要使用，所以简单的传递<strong>nullptr</strong>，关于这部分会专门在深度缓冲区章节中讨论。</p>
+<h2 id="ftoc-heading-7" class="ftwp-heading">颜色混合</h2>
+<p>片段着色器输出具体的颜色，它需要与帧缓冲区<code>framebuffer</code>中已经存在的颜色进行混合。这个转换的过程成为混色，它有两种方式:</p>
+<ul>
+<li>将old和new颜色进行混合产出一个最终的颜色</li>
+<li>使用按位操作混合old和new颜色的值</li>
+</ul>
+<p>有两个结构体用于配置颜色混合。第一个结构体<strong>VkPipelineColorBlendAttachmentState</strong>包括了每个附加到帧缓冲区的配置。第二个结构体<strong>VkPipelineColorBlendStateCreateInfo</strong>包含了全局混色的设置。在我们的例子中仅使用第一种方式:</p>
+<pre><code class="language-cpp  line-numbers">VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
+colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+colorBlendAttachment.blendEnable = VK_FALSE;
+colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
+colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
+colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
+colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
+</code></pre>
+<p>这种针对每个帧缓冲区配置混色的方式，使用如下伪代码进行说明:</p>
+<pre><code class="language-cpp  line-numbers">if (blendEnable) {
+    finalColor.rgb = (srcColorBlendFactor * newColor.rgb) &lt;colorBlendOp&gt; (dstColorBlendFactor * oldColor.rgb);
+    finalColor.a = (srcAlphaBlendFactor * newColor.a) &lt;alphaBlendOp&gt; (dstAlphaBlendFactor * oldColor.a);
+} else {
+    finalColor = newColor;
+}finalColor = finalColor &amp; colorWriteMask;
+</code></pre>
+<p>如果<strong>blendEnable</strong>设置为<strong>VK_FALSE</strong>,那么从片段着色器输出的新颜色不会发生变化，否则两个混色操作会计算新的颜色。所得到的结果与<strong>colorWriteMask</strong>进行AND运算，以确定实际传递的通道。</p>
+<p>大多数的情况下使用混色用于实现<code>alpha blending</code>，新的颜色与旧的颜色进行混合会基于它们的<code>opacity</code>透明通道。<strong>finalColor</strong>作为最终的输出:</p>
+<pre><code class="language-cpp  line-numbers">finalColor.rgb = newAlpha * newColor + (1 - newAlpha) * oldColor;
+finalColor.a = newAlpha.a;
+</code></pre>
+<p>可以通过一下参数完成:</p>
+<pre><code class="language-cpp  line-numbers">colorBlendAttachment.blendEnable = VK_TRUE;
+colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+</code></pre>
+<p>可以在规范中找到所有有关<strong>VkBlendFactor</strong>和<strong>VkBlendOp</strong>的枚举值。</p>
+<p>第二个结构体持有所有帧缓冲区的引用，它允许设置混合操作的常量，该常量可以作为后续计算的混合因子:</p>
+<pre><code class="language-cpp  line-numbers">VkPipelineColorBlendStateCreateInfo colorBlending = {};
+colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+colorBlending.logicOpEnable = VK_FALSE;
+colorBlending.logicOp = VK_LOGIC_OP_COPY; // Optional
+colorBlending.attachmentCount = 1;
+colorBlending.pAttachments = &amp;colorBlendAttachment;
+colorBlending.blendConstants[0] = 0.0f; // Optional
+colorBlending.blendConstants[1] = 0.0f; // Optional
+colorBlending.blendConstants[2] = 0.0f; // Optional
+colorBlending.blendConstants[3] = 0.0f; // Optional
+</code></pre>
+<p>如果需要使用第二种方式设置混合操作(<code>bitwise combination</code>), 需要设置<strong>logicOpEnable</strong>为<strong>VK_TURE</strong>。二进制位操作在<strong>logicOp</strong>字段中指定。在第一种方式中会自动禁止，等同于为每一个附加的帧缓冲区framebuffer关闭混合操作，<strong>blendEnable</strong>为<strong>VK_FALSE</strong>。<strong>colorWriteMask</strong>掩码会用确定帧缓冲区中具体哪个通道的颜色受到影响。它也可以在两种方式下禁止，截至目前，片段缓冲区向帧缓冲区中输出的颜色不会进行任何变化。</p><div id="eaa_after_nth_p_1" class="eaa-wrapper eaa_after_nth_p_1 eaa_desktop"><div class="eaa-ad  " style=""></div></div>
+<h2 id="ftoc-heading-8" class="ftwp-heading">动态修改</h2>
+<p>之前创建的一些结构体的状态可以在运行时动态修改，而不必重新创建。比如<code>viewport</code>的大小,<code>line width</code>和<code>blend constants</code>。如果需要进行这样的操作，需要填充<strong>VkPipelineDynamicStateCreateInfo</strong>结构体:</p>
+<pre><code class="language-cpp  line-numbers">VkDynamicState dynamicStates[] = {
+    VK_DYNAMIC_STATE_VIEWPORT,
+    VK_DYNAMIC_STATE_LINE_WIDTH
+};VkPipelineDynamicStateCreateInfo dynamicState = {};
+dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+dynamicState.dynamicStateCount = 2;
+dynamicState.pDynamicStates = dynamicStates;
+</code></pre>
+<p>在绘制的过程中指定这些数据，这会导致忽略之前的相关数值。我们会在后续的章节中回过头来讨论。如果没有任何需要动态修改的数值清设置为<strong>nullptr</strong>。</p>
+<h2 id="ftoc-heading-9" class="ftwp-heading">管道布局</h2>
+<p>可以在着色器中使用<strong>uniform</strong>，它是类似与动态状态变量的全局变量，可以在绘画时修改，可以更改着色器的行为而无需重新创建它们。它们通常用于将变换矩阵传递到顶点着色器或者在片段着色器冲创建纹理采样器。</p>
+<p>这些<code>uniform</code>数值需要在管线创建过程中，通过<strong>VkPipelineLayout</strong>对象指定。即使在后续内容中用到，我们也仍然需要创建一个空的<code>pipeline layout</code>。</p>
+<p>创建类成员变量持有该对象，因为我们在后续章节中的函数中引用它:</p>
+<pre><code class="language-cpp  line-numbers">VkPipelineLayout pipelineLayout;
+</code></pre>
+<p>在<strong>createGraphicsPipeline</strong>函数中创建对象:</p>
+<pre><code class="language-cpp  line-numbers">VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+pipelineLayoutInfo.setLayoutCount = 0; // Optional
+pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
+pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
+pipelineLayoutInfo.pPushConstantRanges = 0; // Optionalif (vkCreatePipelineLayout(device, &amp;pipelineLayoutInfo, nullptr, &amp;pipelineLayout) != VK_SUCCESS) {
+    throw std::runtime_error("failed to create pipeline layout!");
+}
+</code></pre>
+<p>该结构体还指定了<code>push</code>常量，这是将动态值传递给着色器的拎一个方式。<code>pipeline layout</code>可以在整个程序的生命周期内引用，所以它在程序退出的时候进行销毁。</p>
+<pre><code class="language-cpp  line-numbers">void cleanup() {
+    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+    ...
+}
+</code></pre>
+<h2 id="ftoc-heading-10" class="ftwp-heading">结论</h2>
+<p>这就是所有有关<code>fixed-function</code>的内容，看起来有很多的工作去做，值得庆幸的是我们几乎了解了所有有关渲染管线的内容。这个过程减少了因为不了解某些组件的默认状态，而造成运行时碰到未知行为的可能性。</p>
+<p>然而，在我们可以最终创建图形管线之前，还有一个对象需要创建，它就是<code>render pass</code>。</p>
+</p></div>		</article>
+		<div class="asb aub-post aub-post-02">
+						            <div class="post-actions">
+            	<a href="javascript:;" etap="like" class="post-like action action-like" data-pid="3333"><i class="fa fa-thumbs-o-up"></i>赞(<span>9</span>)</a>            	            	            </div>
+        				
+					<div class="action-share"></div>
+		
+		<div class="article-tags"></div>
+		
+		
+		<div class="relates relates-thumb"><div class="title"><h3>猜你喜欢</h3></div><ul><li><a href="support-vulkan-game.html"><img data-src="image/img.geek-docs.com/vulkan/201911161129.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的游戏|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li><li><a href="support-vulkan-gpu.html"><img data-src="image/img.geek-docs.com/vulkan/201911112317.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的GPU|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="vulkan-basic-types.html"><img data-src="image/img.geek-docs.com/vulkan/201911100840.jpg?x-oss-process=style/4-3-thumb" alt="Vulkan 基本类型|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li><a href="vulkan-visual-studio-environment-configuration.html"><img data-src="image/img.geek-docs.com/vulkan/201910191450.png?x-oss-process=style/4-3-thumb" alt="Vulkan Visual Studio环境配置|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li></ul></div>				<div class="title" id="comments">
+	<h3>评论 <b>2</b></h3>
+</div>
+<div id="respond" class="no_webshot">
+		
+	<form action="https://geek-docs.com/wp-comments-post.php" method="post" id="commentform">
+		<div class="comt">
+			<div class="comt-title">
+				<img alt='' data-src='https://secure.gravatar.com/avatar/?s=50&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/?s=100&#038;d=mm&#038;r=g 2x' class='avatar avatar-50 photo avatar-default' height='50' width='50' />				<p><a rel="nofollow" id="cancel-comment-reply-link" href="javascript:;">取消</a></p>
+			</div>
+			<div class="comt-box">
+				<textarea placeholder="你的评论可以一针见血" class="input-block-level comt-area" name="comment" id="comment" cols="100%" rows="3" tabindex="1" onkeydown="if(event.ctrlKey&amp;&amp;event.keyCode==13){document.getElementById('submit').click();return false};"></textarea>
+				<div class="comt-ctrl">
+					<div class="comt-tips"><input type='hidden' name='comment_post_ID' value='3333' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+<label for="comment_mail_notify" class="checkbox inline hide" style="padding-top:0"><input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" value="comment_mail_notify" checked="checked"/>有人回复时邮件通知我</label></div>
+					<button type="submit" name="submit" id="submit" tabindex="5">提交评论</button>
+					<!-- <span data-type="comment-insert-smilie" class="muted comt-smilie"><i class="icon-thumbs-up icon12"></i> 表情</span> -->
+				</div>
+			</div>												<div class="comt-comterinfo" id="comment-author-info" >
+						<ul>
+							<li class="form-inline"><label class="hide" for="author">昵称</label><input class="ipt" type="text" name="author" id="author" value="" tabindex="2" placeholder="昵称"><span class="text-muted">昵称 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="email">邮箱</label><input class="ipt" type="text" name="email" id="email" value="" tabindex="3" placeholder="邮箱"><span class="text-muted">邮箱 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="url">网址</label><input class="ipt" type="text" name="url" id="url" value="" tabindex="4" placeholder="网址"><span class="text-muted">网址</span></li>
+						</ul>
+					</div>
+									</div>	</form>
+	</div>
+<div id="postcomments">
+	<ol class="commentlist">
+		<li class="comment even thread-even depth-1" id="comment-1531"><span class="comt-f">#1</span><div class="comt-avatar"><img alt='' data-src='https://secure.gravatar.com/avatar/4adcca49b3b1e5a08ac202f5d5a9e688?s=50&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/4adcca49b3b1e5a08ac202f5d5a9e688?s=100&#038;d=mm&#038;r=g 2x' class='avatar avatar-50 photo' height='50' width='50' /></div><div class="comt-main" id="div-comment-1531"><p>“是否启用顶点索重新开始图元”，英文原文是“ if primitive restart should be enabled”，“primitive restart”应该翻译为“图元重启”</p>
+<div class="comt-meta"><span class="comt-author">aa</span>2年前 (2020-12-29)<a rel='nofollow' class='comment-reply-link' href="javascript:;" onclick='return addComment.moveForm( "div-comment-1531", "1531", "respond", "3333" )' aria-label='回复给aa'>回复</a></div></div></li><!-- #comment-## -->
+<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-1881"><span class="comt-f">#2</span><div class="comt-avatar"><img alt='' data-src='https://secure.gravatar.com/avatar/9d0538829248328694a05379c8b71ec5?s=50&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/9d0538829248328694a05379c8b71ec5?s=100&#038;d=mm&#038;r=g 2x' class='avatar avatar-50 photo' height='50' width='50' /></div><div class="comt-main" id="div-comment-1881"><p>早起的图形API &#8212;-&gt;   早期的图形API</p>
+<div class="comt-meta"><span class="comt-author">han</span>1年前 (2021-02-25)<a rel='nofollow' class='comment-reply-link' href="javascript:;" onclick='return addComment.moveForm( "div-comment-1881", "1881", "respond", "3333" )' aria-label='回复给han'>回复</a></div></div></li><!-- #comment-## -->
+	</ol>
+	<div class="pagenav">
+			</div>
+</div>
+	</div>
+	</div></div>
+    <div class="tblside">
+    <div class="tblside-roll">
+		<h3>Vulkan 教程</h3><ul><li><a href="index.html">Vulkan 教程</a></li><li><a href="what-is-vulkan.html">什么是 Vulkan</a></li><li><a href="vulkan-development-environment-built-on-windows.html">Vulkan 开发环境搭建之Windows</a></li><li><a href="vulkan-understand-instance.html">Vulkan 创建Vulkan实例</a></li><li><a href="vulkan-physical-devices-and-queue-clusters.html">Vulkan 物理设备与队列</a></li><li><a href="vulkan-application-framework-prototype.html">Vulkan 应用程序框架原型</a></li><li><a href="understand-validation-layers.html">Vulkan 验证层</a></li><li><a href="vulkan-logical-devices-and-queues.html">Vulkan 逻辑设备与队列</a></li><li><a href="vulkan-exchange-of-chain.html">Vulkan 交换链</a></li><li><a href="vulkan-window-surface.html">Vulkan Window Surface</a></li><li><a href="vulkan-graphic-pipeline.html">Vulkan 图形管线</a></li><li><a href="vulkan-images-and-views.html">Vulkan 图像与视图</a></li><li><a href="vulkan-shader-modules.html">Vulkan 着色器模块</a></li><li class="active"><a href="vulkan-fixed-functions.html">Vulkan 固有功能</a></li><li><a href="vulkan-framebuffers.html">Vulkan 帧缓冲区</a></li><li><a href="vulkan-integration-pipeline.html">Vulkan 集成管线</a></li><li><a href="vulkan-render-passes.html">Vulkan 渲染通道</a></li><li><a href="vulkan-command-buffers.html">Vulkan 命令缓冲区</a></li><li><a href="vulkan-rendering-and-presentation.html">Vulkan 渲染和显示</a></li><li><a href="vulkan-reconstructed-commutative-chain.html">Vulkan 重构交换链</a></li><li><a href="vertex-input-description.html">Vulkan 顶点输入</a></li><li><a href="vertex-buffer-creation.html">Vulkan 创建顶点缓冲区</a></li><li><a href="vulkan-staging-buffer.html">Vulkan 临时缓冲区</a></li><li><a href="vulkan-index-buffer.html">Vulkan 索引缓冲区</a></li><li><a href="vulkan-descriptor-layout-and-buffer.html">Vulkan 描述符布局和缓冲区</a></li><li><a href="vulkan-descriptor-pool-and-sets.html">Vulkan 描述符池和集合</a></li><li><a href="vulkan-images.html">Vulkan 图像(Images)</a></li><li><a href="vulkan-image-view-and-sampler.html">Vulkan 图像视图和采样器</a></li><li><a href="combined-image-sampler.html">Vulkan 组合图像取样器</a></li><li><a href="vulkan-depth-buffering.html">Vulkan 深度缓冲区</a></li><li><a href="loading-models.html">Vulkan 加载模型</a></li><li><a href="vulkan-generating-mipmaps.html">Vulkan 生成贴图(mipmap)</a></li><li><a href="vulkan-multisampling.html">Vulkan 多重采样(Multisampling)</a></li><li><a href="vulkan-and-opengl.html">Vulkan和OpenGL区别</a></li><li><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li><li><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li></ul>    </div>
+	  		<div class="widget widget_recent_entries" id="recent-posts-3">		<h3>最新文章</h3>	
+					
+		</div></div>
+<div class="tbrside">
+<nav>
+<div id="geekdocs-fixed"></div>
+	
+</nav>
+</div>
+</section><footer class="footer">
+	<div class="container">
+							</div>
+</footer><div class="rollbar rollbar-rb"><ul><li class="rollbar-totop"><a href="javascript:(jsui.scrollTo());"><i class="fa fa-angle-up"></i><span>回顶</span></a><h6>回顶部<i></i></h6></li></ul></div>
+<script>
+window.jsui={
+	www: 'https://geek-docs.com',
+	uri: 'https://geek-docs.com/wp-content/themes/dux',
+	ver: '6.0',
+	roll: ["1","2","3"],
+	ajaxpager: '5',
+	url_rp: 'https://geek-docs.com/'
+};
+</script>
+        <!--[if lte IE 9]>
+        <script>
+            'use strict';
+            (function($) {
+                $(document).ready(function() {
+                    $('#ftwp-container').addClass('ftwp-ie9');
+                });
+            })(jQuery);
+        </script>
+        <![endif]-->
+		<link rel='stylesheet' id='prism-theme-style-css'  href='css/prism-hopscotch.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-toolbar-css'  href='css/prism-toolbar.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-line-numbers-css'  href='css/prism-line-numbers.min.css?ver=1.15.0' type='text/css' media='all' />
+<script type='text/javascript' src='js/jquery.min.js?ver=1.12.4'></script>
+<script type='text/javascript' src='js/katex.min.js?ver=0.10.0-beta'></script>
+<script type='text/javascript' src='js/bootstrap.min.js?ver=6.0'></script>
+<script type='text/javascript' src='js/loader.js?ver=6.0'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var q2w3_sidebar_options = [{"sidebar":"q2w3-default-sidebar","margin_top":10,"stop_id":"","screen_max_width":0,"screen_max_height":0,"width_inherit":false,"refresh_interval":1500,"window_load_hook":false,"disable_mo_api":false,"widgets":["geekdocs-fixed"]}];
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/q2w3-fixed-widget.min.js?ver=5.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var fixedtocOption = {"showAdminbar":"","inOutEffect":"zoom","isNestedList":"1","isColExpList":"1","showColExpIcon":"1","isAccordionList":"","isQuickMin":"1","isEscMin":"1","isEnterMax":"1","fixedMenu":"","scrollOffset":"10","fixedOffsetX":"10","fixedOffsetY":"0","fixedPosition":"middle-left","contentsFixedHeight":"","inPost":"","contentsFloatInPost":"left","contentsWidthInPost":"0","contentsHeightInPost":"","contentsColexpInitMobile":"1","inWidget":"","fixedWidget":"","triggerBorder":"medium","contentsBorder":"thin","triggerSize":"50","isClickableHeader":"","debug":"","postContentSelector":"#ftwp-postcontent","mobileMaxWidth":"768","disappearPoint":"content-bottom"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/ftoc.min.js?ver=3.1.24'></script>
+<script type='text/javascript' src='js/hoverIntent.min.js?ver=1.8.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var megamenu = {"timeout":"300","interval":"100"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/maxmegamenu.js?ver=2.9.7'></script>
+<script type='text/javascript' src='js/wp-embed.min.js?ver=4.9.20'></script>
+<script type='text/javascript' src='js/prism-core.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-autoloader.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-toolbar.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-line-numbers.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-show-language.min.js?ver=1.15.0'></script>
+		<script type="text/javascript">
+            (function ($) {
+                $(document).ready(function () {
+                    $(".katex.math.inline").each(function () {
+                        var parent = $(this).parent()[0];
+                        if (parent.localName !== "code") {
+                            var texTxt = $(this).text();
+                            var el = $(this).get(0);
+                            try {
+                                katex.render(texTxt, el);
+                            } catch (err) {
+                                $(this).html("<span class=\'err\'>" + err);
+                            }
+                        } else {
+                            $(this).parent().text($(this).parent().text());
+                        }
+                    });
+                    $(".katex.math.multi-line").each(function () {
+                        var texTxt = $(this).text();
+                        var el = $(this).get(0);
+                        try {
+                            katex.render(texTxt, el, {displayMode: true})
+                        } catch (err) {
+                            $(this).html("<span class=\'err\'>" + err)
+                        }
+                    });
+                })
+            })(jQuery);
+		</script>
+				<script type="text/javascript">
+			Prism.plugins.autoloader.languages_path = "http://cdn.bootcss.com/prism/1.15.0/components/"
+		</script>
+		</body></html>

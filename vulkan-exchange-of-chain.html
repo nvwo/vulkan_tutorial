@@ -1,0 +1,514 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=11,IE=10,IE=9,IE=8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-title" content="极客教程">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+<title>Vulkan 交换链|极客教程</title><link rel='stylesheet' id='Katex-css'  href='css/katex.min.css?ver=0.10.0-beta' type='text/css' media='all' />
+<link rel='stylesheet' id='megamenu-css'   href='css/style.css?ver=e86352' type='text/css' media='all' />
+<link rel='stylesheet' id='dashicons-css'  href='css/dashicons.min.css?ver=4.9.20' type='text/css' media='all' />
+<link rel='stylesheet' id='_bootstrap-css'  href='css/bootstrap.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_fontawesome-css'  href='css/font-awesome.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_main-css'  href='css/main.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='fixedtoc-style-css'  href='css/ftoc.min.css?ver=3.1.24' type='text/css' media='all' />
+<style id='fixedtoc-style-inline-css' type='text/css'>
+#ftwp-container.ftwp-wrap #ftwp-contents { width: 255px; height: auto; } #ftwp-container.ftwp-wrap #ftwp-trigger { width: 50px; height: 50px; font-size: 30px; } #ftwp-container #ftwp-trigger.ftwp-border-medium { font-size: 29px; } #ftwp-container.ftwp-wrap #ftwp-header { font-size: 16px; font-family: inherit; } #ftwp-container.ftwp-wrap #ftwp-header-title { font-weight: bold; } #ftwp-container.ftwp-wrap #ftwp-list { font-size: 14px; font-family: inherit; } #ftwp-container #ftwp-list.ftwp-liststyle-decimal .ftwp-anchor::before { font-size: 14px; } #ftwp-container #ftwp-list.ftwp-strong-first>.ftwp-item>.ftwp-anchor .ftwp-text { font-size: 15.4px; } #ftwp-container #ftwp-list.ftwp-strong-first.ftwp-liststyle-decimal>.ftwp-item>.ftwp-anchor::before { font-size: 15.4px; } #ftwp-container.ftwp-wrap #ftwp-trigger { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-trigger { border-color: rgba(51,51,51,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents { border-color: rgba(51,51,51,0.95); } #ftwp-container.ftwp-wrap #ftwp-header { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents:hover #ftwp-header { background: #f3f3f3; } #ftwp-container.ftwp-wrap #ftwp-list { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents:hover #ftwp-list { background: #f3f3f3; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-anchor:hover { color: #00A368; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-anchor:focus, #ftwp-container.ftwp-wrap #ftwp-list .ftwp-active, #ftwp-container.ftwp-wrap #ftwp-list .ftwp-active:hover { color: #fff; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-text::before { background: rgba(9,168,0,0.95); } .ftwp-heading-target::before { background: rgba(9,168,0,0.95); }
+</style>        <style>
+            .eaa-clean {
+                padding: 0 !important;
+                border: none !important;
+            }            .eaa-ad.alignleft {
+                margin-right: 10px;
+            }            .eaa-ad.alignright {
+                margin-left: 10px;
+            }
+            .eaa-ad.debug{
+                background:peachpuff;
+                border:solid 2px #FF0000;
+                box-sizing: border-box;
+            }        </style>		
+<link rel='prev' title='VSCode 代码调试器' href='https://geek-docs.com/vscode/vscode-tutorials/vscode-code-debugger.html' />
+<link rel='next' title='Vulkan Window Surface' href='vulkan-window-surface.html' />
+<link rel="canonical" href="vulkan-exchange-of-chain.html"/><meta name="keywords" content="Vulkan 交换链">
+<meta name="description" content="Vulkan 交换链，在这一章节，我们了解一下将渲染图像提交到屏幕的基本机制。这种机制称为交换链，并且需要在Vulkan上下文中被明确创建。从屏幕的角度观察，交换链本质上是一个图像队列。应用程序作为生产者会获取图像进行绘制，然后将其返还给交换链图像队列，等待屏幕消费。交换链的具体配置信息决定了应用程序提交绘制图像到队列的条件以及图像队列表现的效果，但交换链的通常使用目的是使绘制图像的最终呈现与屏幕">
+<style>.container{max-width:1780px}a:hover, .site-navbar li:hover > a, .site-navbar li.active a:hover, .site-navbar a:hover, .search-on .site-navbar li.navto-search a, .topbar a:hover, .site-nav li.current-menu-item > a, .site-nav li.current-menu-parent > a, .site-search-form a:hover, .branding-primary .btn:hover, .title .more a:hover, .excerpt h2 a:hover, .excerpt .meta a:hover, .excerpt-minic h2 a:hover, .excerpt-minic .meta a:hover, .article-content .wp-caption:hover .wp-caption-text, .article-content a, .article-nav a:hover, .relates a:hover, .widget_links li a:hover, .widget_categories li a:hover, .widget_ui_comments strong, .widget_ui_posts li a:hover .text, .widget_ui_posts .nopic .text:hover , .widget_meta ul a:hover, .tagcloud a:hover, .textwidget a, .textwidget a:hover, .sign h3, #navs .item li a, .url, .url:hover, .excerpt h2 a:hover span, .widget_ui_posts a:hover .text span, .widget-navcontent .item-01 li a:hover span, .excerpt-minic h2 a:hover span, .relates a:hover span{color: #09a800;}.btn-primary, .label-primary, .branding-primary, .post-copyright:hover, .article-tags a, .pagination ul > .active > a, .pagination ul > .active > span, .pagenav .current, .widget_ui_tags .items a:hover, .sign .close-link, .pagemenu li.active a, .pageheader, .resetpasssteps li.active, #navs h2, #navs nav, .btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary, .tag-clouds a:hover{background-color: #09a800;}.btn-primary, .search-input:focus, #bdcs .bdcs-search-form-input:focus, #submit, .plinks ul li a:hover,.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary{border-color: #09a800;}.search-btn, .label-primary, #bdcs .bdcs-search-form-submit, #submit, .excerpt .cat{background-color: #09a800;}.excerpt .cat i{border-left-color:#09a800;}@media (max-width: 720px) {.site-navbar li.active a, .site-navbar li.active a:hover, .m-nav-show .m-icon-nav{color: #09a800;}}@media (max-width: 480px) {.pagination ul > li.next-page a{background-color:#09a800;}}.post-actions .action.action-like,.pagemenu li.current-menu-item > a{background-color: #09a800;}.catleader h1{border-left-color: #09a800;}.loop-product-filters ul .current-cat>a{color: #09a800;}.tblside-roll h3{background-color:#09a800 !important;}.tblside-roll li.active a{color:#09a800 !important;border-left-color:#09a800 !important;}.single .content, .category .content{margin-right: 300px !important;margin-left: 300px !important;}
+.tblside{position: relative;float: left;width: 300px;margin-left: -100%;overflow:hidden;}
+.tblside-roll{margin-bottom: 15px;}
+.tblside-ads{margin-bottom: 15px;}
+.tblside-ads h3{margin:0px 0px 15px 0px;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tblside-roll li{margin-bottom: 0;}
+.tblside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:break-word;}
+.tblside-roll li.cat-item{margin-left: 0;}
+.tblside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tblside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+.tbrside{position: relative;float: right;width: 300px;margin-left: -100%;overflow:hidden;}
+.tbrside-roll{margin-bottom: 15px;}
+.tbrside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tbrside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tbrside-roll li{margin-bottom: 0;}
+.tbrside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.tbrside-roll li.cat-item{margin-left: 0;}
+.tbrside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tbrside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+@media (max-width:1100px){
+	.single .content, .category .content{margin-left: 0 !important;margin-right: 0 !important;}
+	.tblside{display: none !important;}
+	.tbrside{display: none !important;}
+}</style><style type="text/css">/** Mega Menu CSS: fs **/</style>
+<link rel="shortcut icon" href="image/favicon.ico">
+<!--[if lt IE 9]><script src="https://geek-docs.com/wp-content/themes/dux/js/libs/html5.min.js"></script><![endif]-->
+</head>
+<body class="post-template-default single single-post postid-3205 single-format-standard m-excerpt-cat topbar-off comment-open site-layout-3 text-justify-on mega-menu-nav has-ftoc">
+<header class="header">
+	<div class="container">
+		<div class="logo"><a href="https://geek-docs.com/" title="极客教程 - 以工匠精神打磨精品教程"><img src="image/static/logo.png" alt="极客教程 - 以工匠精神打磨精品教程">极客教程</a></div>				<ul class="site-nav site-navbar">
+			<div id="mega-menu-wrap-nav" class="mega-menu-wrap"><div class="mega-menu-toggle"><div class="mega-toggle-blocks-left"></div><div class="mega-toggle-blocks-center"></div><div class="mega-toggle-blocks-right"><div class='mega-toggle-block mega-menu-toggle-animated-block mega-toggle-block-0' id='mega-toggle-block-0'><button aria-label="Toggle Menu" class="mega-toggle-animated mega-toggle-animated-slider" type="button" aria-expanded="false">
+                  <span class="mega-toggle-animated-box">
+                    <span class="mega-toggle-animated-inner"></span>
+                  </span>
+                </button></div></div></div><ul id="mega-menu-nav" class="mega-menu max-mega-menu mega-menu-horizontal mega-no-js" data-event="hover" data-effect="disabled" data-effect-speed="200" data-effect-mobile="disabled" data-effect-speed-mobile="0" data-mobile-force-width="false" data-second-click="go" data-document-click="collapse" data-vertical-behaviour="standard" data-breakpoint="768" data-unbind="true" data-mobile-state="collapse_all" data-hover-intent-timeout="300" data-hover-intent-interval="100"><li class='mega-menu-item mega-menu-item-type-custom mega-menu-item-object-custom mega-menu-item-has-children mega-align-bottom-left mega-menu-flyout mega-menu-item-18090' id='mega-menu-item-18090'><a class="mega-menu-link" aria-haspopup="true" aria-expanded="false" tabindex="0">基础编程<span class="mega-indicator"></span></a>						<i class="fa fa-bars m-icon-nav"></i>
+			</div>
+</header>
+<div class="site-search">
+	<div class="container">
+		<form method="get" class="site-search-form" action="https://geek-docs.com/" ><input class="search-input" name="s" type="text" placeholder="输入关键字" value=""><button class="search-btn" type="submit"><i class="fa fa-search"></i></button></form>	</div>
+</div>	<div class="breadcrumbs">
+		<div class="container">当前位置：<a href="/">极客教程</a> <small>></small> <a href="/">Vulkan</a> <small>></small> <a href="">Vulkan 教程</a> <small>></small> Vulkan 交换链</div>
+	</div>
+<section class="container">
+	<div class="content-wrap">
+	<div class="content">
+				<header class="article-header">
+			<h1 class="article-title"><a href="vulkan-exchange-of-chain.html">Vulkan 交换链</a></h1>
+		</header>
+				
+				<nav class="article-nav">
+			<div class="asb aub-post aub-post-01">
+
+</div>			<span class="article-nav-prev">上一篇 <a href="https://geek-docs.com/vscode/vscode-tutorials/vscode-code-debugger.html" rel="prev">VSCode 代码调试器</a></span>
+			<span class="article-nav-next">下一篇 <a href="vulkan-window-surface.html" rel="next">Vulkan Window Surface</a></span>
+		</nav>
+				
+		<article class="article-content">
+			<div id="ftwp-container" class="ftwp-wrap ftwp-hidden-state ftwp-minimize ftwp-middle-left"><button type="button" id="ftwp-trigger" class="ftwp-shape-round ftwp-border-medium" title="单击以最大化目录"><span class="ftwp-trigger-icon ftwp-icon-menu"></span></button><nav id="ftwp-contents" class="ftwp-shape-round ftwp-border-thin"><header id="ftwp-header"><span id="ftwp-header-control" class="ftwp-icon-menu"></span><button type="button" id="ftwp-header-minimize" class="ftwp-icon-minimize" aria-labelledby="ftwp-header-title" aria-label="Expand or collapse"></button><h3 id="ftwp-header-title">文章目录</h3></header><ol id="ftwp-list" class="ftwp-liststyle-decimal ftwp-effect-bounce-to-right ftwp-list-nest ftwp-strong-first ftwp-colexp ftwp-colexp-icon"><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-1"><span class="ftwp-text">检查交换链支持</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-2"><span class="ftwp-text">查询交换链支持的详情</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-3"><span class="ftwp-text">为交换链选择正确的设置</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-4"><span class="ftwp-text">Surface 格式</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-5"><span class="ftwp-text">演示模式</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-6"><span class="ftwp-text">交换范围</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-7"><span class="ftwp-text">创建交换链</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-8"><span class="ftwp-text">获取交换链图像</span></a></li></ol></nav></div>
+<div id="ftwp-postcontent"><p><strong>Vulkan 交换链</strong>，在这一章节，我们了解一下将渲染图像提交到屏幕的基本机制。这种机制称为交换链，并且需要在<code>Vulkan</code>上下文中被明确创建。从屏幕的角度观察，交换链本质上是一个图像队列。应用程序作为生产者会获取图像进行绘制，然后将其返还给交换链图像队列，等待屏幕消费。交换链的具体配置信息决定了应用程序提交绘制图像到队列的条件以及图像队列表现的效果，但交换链的通常使用目的是使绘制图像的最终呈现与屏幕的刷新频率同步。可以简单将交换链理解为一个队列，同步从生产者，即应用程序绘制图像，到消费者，屏幕刷新的<strong>Produce-Consume</strong>关系。在深入内容前看一下官方给出的整体交换链示例图。<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/1113490-20170612103339009-1922082102.png" alt="Vulkan 交换链" title="Vulkan 交换链" /><br />
+当然图示上有一些陌生的关键字会在接下来的章节中逐一介绍，在此有一个整体概念。</p>
+<h2 id="ftoc-heading-1" class="ftwp-heading">检查交换链支持</h2>
+<p>并不是所有的图形卡具备能力将绘制的图像直接显示到屏幕上。比如一个GPU卡是为服务器设计的，那就不会具备任何有关显示的输出。其次，图像呈现是与<code>surface</code>打交道，而<code>surface</code>又与具体的窗体系统强关联，从这个角度，我们可以认为它不是<code>Vulkan</code>核心的部分。在查询图形卡是否支持后，需要启用<strong>VK_KHR_swapchain</strong>设备级别的扩展。</p>
+<p>所以呢，我们首先扩展之前的<strong>isDeviceSuitable</strong>函数，确认设备是否支持。之前我们已经了解如何列出<strong>VkPhysicalDevice</strong>支持的扩展列表，在此就不展开具体细节了。请注意的是，Vulkan头文件提供给了一个方便的宏<strong>VK_KHR_SWAPCHAIN_EXTENSION_NAME</strong>，该宏定义为<strong>VK_KHR_swapchain</strong>。使用宏的优点就是避免拼写错误。</p>
+<p>首先声明需要的设备扩展清单，与之前开启<code>validation layers</code>的列表是相似的。</p>
+<pre><code class="language-cpp  line-numbers">const std::vector&lt;const char*&gt; deviceExtensions = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
+</code></pre>
+<p>接下来，创建一个从<strong>isDeviceSuitable</strong>调用的新函数<strong>checkDeviceExtensionSupport</strong>作为额外的检查逻辑:</p>
+<pre><code class="language-cpp  line-numbers">bool isDeviceSuitable(VkPhysicalDevice device) {
+    QueueFamilyIndices indices = findQueueFamilies(device);    bool extensionsSupported = checkDeviceExtensionSupport(device);    return indices.isComplete() &amp;&amp; extensionsSupported;
+}bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
+    return true;
+}
+</code></pre>
+<p>修改函数体以便于枚举设备所有集合，并检测是否所有需要的扩展在其中。</p>
+<pre><code class="language-cpp  line-numbers">bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
+    uint32_t extensionCount;
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &amp;extensionCount, nullptr);    std::vector&lt;VkExtensionProperties&gt; availableExtensions(extensionCount);
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &amp;extensionCount, availableExtensions.data());    std::set&lt;std::string&gt; requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());    for (const auto&amp; extension : availableExtensions) {
+        requiredExtensions.erase(extension.extensionName);
+    }    return requiredExtensions.empty();
+}
+</code></pre>
+<p>选择一组字符串来表示未经确认过的扩展名。这样做可以比较容易的进行增删及遍历的次序。当然也可以像<strong>CheckValidationLayerSupport</strong>函数那样做嵌套的循环。性能的差异在这里是不关紧要的。现在运行代码验证图形卡是否能够顺利创建一个交换链。需要注意的是前一个章节中验证过的<code>presentation</code>队列有效性，并没有明确指出交换链扩展也必须有效支持。好在扩展必须明确的开启。</p>
+<p>启用扩展需要对逻辑设备的创建结构体做一些小的改动:</p>
+<pre><code class="language-cpp  line-numbers">createInfo.enabledExtensionCount = static_cast&lt;uint32_t&gt;(deviceExtensions.size());
+createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+</code></pre>
+<h2 id="ftoc-heading-2" class="ftwp-heading">查询交换链支持的详情</h2>
+<p>如果仅仅是为了测试交换链的有效性是远远不够的，因为它还不能很好的与窗体<code>surface</code>兼容。创建交换链同样也需要很多设置，所以我们需要了解一些有关设置的细节。</p>
+<p>基本上有三大类属性需要设置:</p>
+<ol>
+<li>基本的surface功能属性(min/max number of images in swap chain, min/max width and height of images)</li>
+<li>Surface格式(pixel format, color space)</li>
+<li>有效的presentation模式</li>
+</ol>
+<p>与<strong>findQueueFamilies</strong>类似，我们使用结构体一次性的传递详细的信息。三类属性封装在如下结构体中：</p>
+<pre><code class="language-cpp  line-numbers">struct SwapChainSupportDetails {
+    VkSurfaceCapabilitiesKHR capabilities;
+    std::vector&lt;VkSurfaceFormatKHR&gt; formats;
+    std::vector&lt;VkPresentModeKHR&gt; presentModes;
+};
+</code></pre>
+<p>现在创建新的函数<strong>querySwapChainSupport</strong>填充该结构体。</p>
+<pre><code class="language-cpp  line-numbers">SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) {
+    SwapChainSupportDetails details;    return details;
+}
+</code></pre>
+<p>本小节涉及如何查询包含此信息的结构体，这些结构体的含义及包含的数据将在下一节讨论。</p>
+<p>我们现在开始基本的<code>surface</code>功能设置部分。这些属性可以通过简单的函数调用查询，并返回到单个<strong>VkSurfaceCapabilitiesKHR</strong>结构体中。</p>
+<pre><code class="language-cpp  line-numbers">vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &amp;details.capabilities);
+</code></pre>
+<p>这个函数需要<strong>VkPhysicalDevice</strong>和<strong>VkSurfaceKHR</strong>窗体<code>surface</code>决定支持哪些具体功能。所有用于查看支持功能的函数都需要这两个参数，因为它们是交换链的核心组件。</p>
+<p>下一步查询支持的<code>surface</code>格式。因为获取到的是一个结构体列表，具体应用形式如下:</p><div id="eaa_after_nth_p" class="eaa-wrapper eaa_after_nth_p eaa_desktop"><div class="eaa-ad  " style=""></div></div>
+<pre><code class="language-cpp  line-numbers">uint32_t formatCount;
+vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &amp;formatCount, nullptr);if (formatCount != 0) {
+    details.formats.resize(formatCount);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &amp;formatCount, details.formats.data());
+}
+</code></pre>
+<p>确保集合对于所有有效的格式可扩充。最后查询支持的<code>presentation</code>模式，同样的方式，使用<strong>vkGetPhysicalDeviceSurfacePresentModesKHR</strong>:</p>
+<pre><code class="language-cpp  line-numbers">uint32_t presentModeCount;
+vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &amp;presentModeCount, nullptr);if (presentModeCount != 0) {
+    details.presentModes.resize(presentModeCount);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &amp;presentModeCount, details.presentModes.data());
+}
+</code></pre>
+<p>现在结构体的相关细节介绍完毕，让我们扩充<strong>isDeviceSuitable</strong>函数，从而利用该函数验证交换链足够的支持。在本章节中交换链的支持是足够的，因为对于给定的窗体<code>surface</code>，它至少支持一个图像格式，一个<code>presentaion</code>模式。</p>
+<pre><code class="language-cpp  line-numbers">bool swapChainAdequate = false;
+if (extensionsSupported) {
+    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
+    swapChainAdequate = !swapChainSupport.formats.empty() &amp;&amp; !swapChainSupport.presentModes.empty();
+}
+</code></pre>
+<p>比较重要的是尝试查询交换链的支持是在验证完扩展有效性之后进行。函数的最后一行代码修改为:</p>
+<pre><code class="language-cpp  line-numbers">return indices.isComplete() &amp;&amp; extensionsSupported &amp;&amp; swapChainAdequate;
+</code></pre>
+<h2 id="ftoc-heading-3" class="ftwp-heading">为交换链选择正确的设置</h2>
+<p>如果<strong>swapChainAdequate</strong>条件足够，那么对应的支持的足够的，但是根据不同的模式仍然有不同的最佳选择。我们编写一组函数，通过进一步的设置查找最匹配的交换链。这里有三种类型的设置去确定:</p>
+<ol>
+<li>Surface格式 (color depth)</li>
+<li>Presentation mode (conditions for &#8220;swapping&#8221; image to the screen)</li>
+<li>Swap extent (resolution of images in swap chain)</li>
+</ol>
+<p>首先在脑海中对每一个设置都有一个理想的数值，如果达成一致我们就使用，否则我们一起创建一些逻辑去找到更好的规则、数值。</p>
+<h2 id="ftoc-heading-4" class="ftwp-heading">Surface 格式</h2>
+<p>这个函数用来设置surface格式。我们传递<strong>formats</strong>作为函数的参数，类型为<strong>SwapChainSupportDetails</strong>。</p>
+<pre><code class="language-cpp  line-numbers">VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector&lt;VkSurfaceFormatKHR&gt;&amp; availableFormats) {}
+</code></pre>
+<p>每个<strong>VkSurfaceFormatKHR</strong>结构都包含一个<strong>format</strong>和一个<strong>colorSpace</strong>成员。<code>format</code>成员变量指定色彩通道和类型。比如，<strong>VK_FORMAT_B8G8R8A8_UNORM</strong>代表了我们使用B,G,R和alpha次序的通道，且每一个通道为无符号8bit整数，每个像素总计32bits。<code>colorSpace</code>成员描述<code>SRGB</code>颜色空间是否通过<strong>VK_COLOR_SPACE_SRGB_NONLINEAR_KHR</strong>标志支持。需要注意的是在较早版本的规范中，这个标志名为<strong>VK_COLORSPACE_SRGB_NONLINEAR_KHR</strong>。</p>
+<p>如果可以我们尽可能使用SRGB(彩色语言协议)，<strong>因为它会得到更容易感知的、精确的色彩</strong>。直接与<code>SRGB</code>颜色打交道是比较有挑战的，所以我们使用标准的RGB作为颜色格式，这也是通常使用的一个格式<strong>VK_FORMAT_B8G8R8A8_UNORM</strong>。</p>
+<p>最理想的情况是surface没有设置任何偏向性的格式，这个时候Vulkan会通过仅返回一个<strong>VkSurfaceFormatKHR</strong>结构表示，且该结构的<strong>format</strong>成员设置为<strong>VK_FORMAT_UNDEFINED</strong>。</p>
+<pre><code class="language-cpp  line-numbers">if (availableFormats.size() == 1 &amp;&amp; availableFormats[0].format == VK_FORMAT_UNDEFINED) {
+    return {VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
+}
+</code></pre>
+<p>如果不能自由的设置格式，那么我们可以通过遍历列表设置具有偏向性的组合:</p>
+<pre><code class="language-cpp  line-numbers">for (const auto&amp; availableFormat : availableFormats) {
+    if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM &amp;&amp; availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+        return availableFormat;
+    }
+}
+</code></pre>
+<p>如果以上两种方式都失效了，这个时候我们可以通过“优良”进行打分排序，但是大多数情况下会选择第一个格式作为理想的选择。</p>
+<pre><code class="language-cpp  line-numbers">VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector&lt;VkSurfaceFormatKHR&gt;&amp; availableFormats) {
+    if (availableFormats.size() == 1 &amp;&amp; availableFormats[0].format == VK_FORMAT_UNDEFINED) {
+        return {VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
+    }    for (const auto&amp; availableFormat : availableFormats) {
+        if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM &amp;&amp; availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            return availableFormat;
+        }
+    }    return availableFormats[0];
+}
+</code></pre>
+<h2 id="ftoc-heading-5" class="ftwp-heading">演示模式</h2>
+<p><code>presentation</code>模式对于交换链是非常重要的，因为它代表了在屏幕呈现图像的条件。在<code>Vulkan</code>中有四个模式可以使用:</p>
+<ol>
+<li><strong>VK_PRESENT_MODE_IMMEDIATE_KHR</strong>: 应用程序提交的图像被立即传输到屏幕呈现，这种模式可能会造成撕裂效果。</li>
+<li><strong>VK_PRESENT_MODE_FIFO_KHR</strong>: 交换链被看作一个队列，当显示内容需要刷新的时候，显示设备从队列的前面获取图像，并且程序将渲染完成的图像插入队列的后面。如果队列是满的程序会等待。这种规模与视频游戏的垂直同步很类似。显示设备的刷新时刻被成为“垂直中断”。</li>
+<li><strong>VK_PRESENT_MODE_FIFO_RELAXED_KHR</strong>: 该模式与上一个模式略有不同的地方为，如果应用程序存在延迟，即接受最后一个垂直同步信号时队列空了，将不会等待下一个垂直同步信号，而是将图像直接传送。这样做可能导致可见的撕裂效果。</li>
+<li><strong>VK_PRESENT_MODE_MAILBOX_KHR</strong>: 这是第二种模式的变种。当交换链队列满的时候，选择新的替换旧的图像，从而替代阻塞应用程序的情形。这种模式通常用来实现三重缓冲区，与标准的垂直同步双缓冲相比，它可以有效避免延迟带来的撕裂效果。</li>
+</ol>
+<p>逻辑上看仅仅<strong>VR_PRESENT_MODE_FIFO_KHR</strong>模式保证可用性，所以我们再次增加一个函数查找最佳的模式:</p>
+<pre><code class="language-cpp  line-numbers">VkPresentModeKHR chooseSwapPresentMode(const std::vector&lt;VkPresentModeKHR&gt; availablePresentModes) {
+    return VK_PRESENT_MODE_FIFO_KHR;
+}
+</code></pre>
+<p>我个人认为三级缓冲是一个非常好的策略。它允许我们避免撕裂，同时仍然保持相对低的延迟，通过渲染尽可能新的图像，直到接受垂直同步信号。所以我们看一下列表，它是否可用:</p>
+<pre><code class="language-cpp  line-numbers">VkPresentModeKHR chooseSwapPresentMode(const std::vector&lt;VkPresentModeKHR&gt; availablePresentModes) {
+    for (const auto&amp; availablePresentMode : availablePresentModes) {
+        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+            return availablePresentMode;
+        }
+    }    return VK_PRESENT_MODE_FIFO_KHR;
+}
+</code></pre>
+<p>遗憾的是，一些驱动程序目前并不支持<strong>VK_PRESENT_MODE_FIFO_KHR</strong>,除此之外如果<strong>VK_PRESENT_MODE_MAILBOX_KHR</strong>也不可用，我们更倾向使用<strong>VK_PRESENT_MODE_IMMEDIATE_KHR</strong>:</p>
+<pre><code class="language-cpp  line-numbers">VkPresentModeKHR chooseSwapPresentMode(const std::vector&lt;VkPresentModeKHR&gt; availablePresentModes) {
+    VkPresentModeKHR bestMode = VK_PRESENT_MODE_FIFO_KHR;    for (const auto&amp; availablePresentMode : availablePresentModes) {
+        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+            return availablePresentMode;
+        } else if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
+            bestMode = availablePresentMode;
+        }
+    }    return bestMode;
+}
+</code></pre>
+<h2 id="ftoc-heading-6" class="ftwp-heading">交换范围</h2>
+<p>还剩下一个属性，为此我们添加一个函数:</p><div id="eaa_after_nth_p_1" class="eaa-wrapper eaa_after_nth_p_1 eaa_desktop"><div class="eaa-ad  " style=""></div></div>
+<pre><code class="language-cpp  line-numbers">VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR&amp; capabilities) {}
+</code></pre>
+<p>交换范围是指交换链图像的分辨率，它几乎总是等于我们绘制窗体的分辨率。分辨率的范围被定义在<strong>VkSurfaceCapabilitiesKHR</strong>结构体中。<code>Vulkan</code>告诉我们通过设置<strong>currentExtent</strong>成员的<code>width</code>和<code>height</code>来匹配窗体的分辨率。然而，一些窗体管理器允许不同的设置，意味着将<strong>currentExtent</strong>的width和height设置为特殊的数值表示:<strong>uint32_t</strong>的最大值。在这种情况下，我们参考窗体<strong>minImageExtent</strong>和<strong>maxImageExtent</strong>选择最匹配的分辨率。</p>
+<pre><code class="language-cpp  line-numbers">VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR&amp; capabilities) {
+    if (capabilities.currentExtent.width != std::numeric_limits&lt;uint32_t&gt;::max()) {
+        return capabilities.currentExtent;
+    } else {
+        VkExtent2D actualExtent = {WIDTH, HEIGHT};        actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
+        actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));        return actualExtent;
+    }
+}
+</code></pre>
+<p><strong>max</strong>和<strong>min</strong>函数用于将<code>WIDTH</code>和<code>HEIGHT</code>收敛在实际支持的<strong>minimum</strong>和<strong>maximum</strong>范围中。在这里确认包含<code>&lt;algorithm&gt;</code>头文件。</p>
+<h2 id="ftoc-heading-7" class="ftwp-heading">创建交换链</h2>
+<p>现在我们已经有了这些辅助函数，用以在运行时帮助我们做出明智的选择，最终获得有了创建交换链所需要的所有信息。</p>
+<p>创建一个函数<strong>createSwapChain</strong>，在<strong>initVulkan</strong>函数中，该函数会在创建逻辑设备之后调用。</p>
+<pre><code class="language-cpp  line-numbers">void initVulkan() {
+    createInstance();
+    setupDebugCallback();
+    createSurface();
+    pickPhysicalDevice();
+    createLogicalDevice();
+    createSwapChain();
+}void createSwapChain() {
+    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);    VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
+    VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
+    VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+}
+</code></pre>
+<p>实际上还有一些小事情需要确定，但是比较简单，所以没有单独创建函数。第一个是交换链中的图像数量，可以理解为队列的长度。它指定运行时图像的最小数量，我们将尝试大于1的图像数量，以实现三重缓冲。</p>
+<pre><code class="language-cpp  line-numbers">uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+if (swapChainSupport.capabilities.maxImageCount &gt; 0 &amp;&amp; imageCount &gt; swapChainSupport.capabilities.maxImageCount) {
+    imageCount = swapChainSupport.capabilities.maxImageCount;
+}
+</code></pre>
+<p>对于<strong>maxImageCount</strong>数值为<strong>0</strong>代表除了内存之外没有限制，这就是为什么我们需要检查。</p>
+<p>与Vulkan其他对象的创建过程一样，创建交换链也需要填充大量的结构体:</p>
+<pre><code class="language-cpp  line-numbers">VkSwapchainCreateInfoKHR createInfo = {};
+createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+createInfo.surface = surface;
+</code></pre>
+<p>在指定交换链绑定到具体的<code>surface</code>之后，需要指定交换链图像有关的详细信息:</p>
+<pre><code class="language-cpp  line-numbers">createInfo.minImageCount = imageCount;
+createInfo.imageFormat = surfaceFormat.format;
+createInfo.imageColorSpace = surfaceFormat.colorSpace;
+createInfo.imageExtent = extent;
+createInfo.imageArrayLayers = 1;
+createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+</code></pre>
+<p><strong>imageArrayLayers</strong>指定每个图像组成的层数。除非我们开发3D应用程序，否则始终为1。<strong>imageUsage</strong>位字段指定在交换链中对图像进行的具体操作。在本小节中，我们将直接对它们进行渲染，这意味着它们作为颜色附件。也可以首先将图像渲染为单独的图像，进行后处理操作。在这种情况下可以使用像<strong>VK_IMAGE_USAGE_TRANSFER_DST_BIT</strong>这样的值，并使用内存操作将渲染的图像传输到交换链图像队列。</p>
+<pre><code class="language-cpp  line-numbers">QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+uint32_t queueFamilyIndices[] = {(uint32_t) indices.graphicsFamily, (uint32_t) indices.presentFamily};if (indices.graphicsFamily != indices.presentFamily) {
+    createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+    createInfo.queueFamilyIndexCount = 2;
+    createInfo.pQueueFamilyIndices = queueFamilyIndices;
+} else {
+    createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    createInfo.queueFamilyIndexCount = 0; // Optional
+    createInfo.pQueueFamilyIndices = nullptr; // Optional
+}
+</code></pre>
+<p>接下来，我们需要指定如何处理跨多个队列簇的交换链图像。如果graphics队列簇与presentation队列簇不同，会出现如下情形。我们将从graphics队列中绘制交换链的图像，然后在另一个presentation队列中提交他们。多队列处理图像有两种方法:</p>
+<ol>
+<li><strong>VK_SHARING_MODE_EXCLUSIVE</strong>: 同一时间图像只能被一个队列簇占用，如果其他队列簇需要其所有权需要明确指定。这种方式提供了最好的性能。</li>
+<li><strong>VK_SHARING_MODE_CONCURRENT</strong>: 图像可以被多个队列簇访问，不需要明确所有权从属关系。</li>
+</ol>
+<p>在本小节中，如果队列簇不同，将会使用<code>concurrent</code>模式，避免处理图像所有权从属关系的内容，因为这些会涉及不少概念，建议后续的章节讨论。<code>Concurrent</code>模式需要预先指定队列簇所有权从属关系，通过<strong>queueFamilyIndexCount</strong>和<strong>pQueueFamilyIndices</strong>参数进行共享。如果<code>graphics</code>队列簇和presentation队列簇相同，我们需要使用<code>exclusive</code>模式，因为<code>concurrent</code>模式需要至少两个不同的队列簇。</p>
+<pre><code class="language-cpp  line-numbers">createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
+</code></pre>
+<p>如果交换链支持(<strong>supportedTransforms</strong> in <strong>capabilities</strong>),我们可以为交换链图像指定某些转换逻辑，比如90度顺时针旋转或者水平反转。如果不需要任何<code>transoform</code>操作，可以简单的设置为<strong>currentTransoform</strong>。</p>
+<pre><code class="language-cpp  line-numbers">createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+</code></pre>
+<p>混合Alpha字段指定alpha通道是否应用与与其他的窗体系统进行混合操作。如果忽略该功能，简单的填<strong>VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR</strong>。</p>
+<pre><code class="language-cpp  line-numbers">createInfo.presentMode = presentMode;
+createInfo.clipped = VK_TRUE;
+</code></pre>
+<p><strong>presentMode</strong>指向自己。如果<strong>clipped</strong>成员设置为<strong>VK_TRUE</strong>，意味着我们不关心被遮蔽的像素数据，比如由于其他的窗体置于前方时或者渲染的部分内容存在于可是区域之外，除非真的需要读取这些像素获数据进行处理，否则可以开启裁剪获得最佳性能。</p>
+<pre><code class="language-cpp  line-numbers">createInfo.oldSwapchain = VK_NULL_HANDLE;
+</code></pre>
+<p>最后一个字段<strong>oldSwapChain</strong>。Vulkan运行时，交换链可能在某些条件下被替换，比如窗口调整大小或者交换链需要重新分配更大的图像队列。在这种情况下，交换链实际上需要重新分配创建，并且必须在此字段中指定对旧的引用，用以回收资源。这是一个比较复杂的话题，我们会在后面的章节中详细介绍。现在假设我们只会创建一个交换链。</p>
+<p>现在添加一个类成员变量存储<strong>VkSwapchainKHR</strong>对象:</p><div id="eaa_after_nth_p_2" class="eaa-wrapper eaa_after_nth_p_2 eaa_desktop"><div class="eaa-ad  " style=""></div></div>
+<pre><code class="language-cpp  line-numbers">VkSwapchainKHR swapChain;
+</code></pre>
+<p>创建交换链只需要简单的调用函数:<strong>vkCreateSwapchainKHR</strong>:</p>
+<pre><code class="language-cpp  line-numbers">if (vkCreateSwapchainKHR(device, &amp;createInfo, nullptr, &amp;swapChain) != VK_SUCCESS) {
+    throw std::runtime_error("failed to create swap chain!");
+}
+</code></pre>
+<p>参数是逻辑设备，交换链创建的信息，可选择的分配器和一个存储交换后的句柄指针。它也需要在设备被清理前，进行销毁操作，通过调用<strong>vkDestroySwapchainKHR</strong>。</p>
+<pre><code class="language-cpp  line-numbers">void cleanup() {
+    vkDestroySwapchainKHR(device, swapChain, nullptr);
+    ...
+}
+</code></pre>
+<p>现在运行程序确保交换链创建成功！</p>
+<p>尝试移除<strong>createInfo.imageExtent = extent;</strong>并在validation layers开启的条件下，validation layers会立刻捕获到有帮助的异常信息:<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/1113490-20170603133838852-674219982.png" alt="Vulkan 交换链" title="Vulkan 交换链" /></p>
+<h2 id="ftoc-heading-8" class="ftwp-heading">获取交换链图像</h2>
+<p>交换链创建后，需要获取<strong>VkImage</strong>相关的句柄。它会在后续渲染的章节中引用。添加类成员变量存储该句柄:</p>
+<pre><code class="language-cpp  line-numbers">std::vector&lt;VkImage&gt; swapChainImages;
+</code></pre>
+<p>图像被交换链创建，也会在交换链销毁的同时自动清理，所以我们不需要添加任何清理代码。</p>
+<p>我们在<code>createSwapChain</code>函数下面添加代码获取句柄，在<strong>vkCreateSwapchainKHR</strong>后调用。获取句柄的操作同之前获取数组集合的操作非常类似。首先通过调用<strong>vkGetSwapchainImagesKHR</strong>获取交换链中图像的数量，并根据数量设置合适的容器大小保存获取到的句柄集合。</p>
+<pre><code class="language-cpp  line-numbers">vkGetSwapchainImagesKHR(device, swapChain, &amp;imageCount, nullptr);
+swapChainImages.resize(imageCount);
+vkGetSwapchainImagesKHR(device, swapChain, &amp;imageCount, swapChainImages.data());
+</code></pre>
+<p>需要注意的是，之前创建交换链步骤中我们传递了期望的图像大小到字段<strong>minImageCount</strong>。而实际的运行，允许我们创建更多的图像数量，这就解释了为什么需要再一次获取数量。</p>
+<p>最后，存储交换链格式和范围到成员变量中。我们会在后续章节使用。</p>
+<pre><code class="language-cpp  line-numbers">VkSwapchainKHR swapChain;
+std::vector&lt;VkImage&gt; swapChainImages;
+VkFormat swapChainImageFormat;
+VkExtent2D swapChainExtent;...swapChainImageFormat = surfaceFormat.format;
+swapChainExtent = extent;
+</code></pre>
+<p>现在我们已经设置了一些图像，这些图像可以被绘制，并呈现到窗体。<a href="vulkan-images-and-views.html">下一章节</a>我们开始讨论如何为图像设置渲染目标，并了解实际的图像管线和绘制命令。</p>
+</p></div>		</article>
+		<div class="asb aub-post aub-post-02">
+						            <div class="post-actions">
+            	<a href="javascript:;" etap="like" class="post-like action action-like" data-pid="3205"><i class="fa fa-thumbs-o-up"></i>赞(<span>4</span>)</a>            	            	            </div>
+        				
+					<div class="action-share"></div>
+		
+		<div class="article-tags"></div>
+		
+		
+		<div class="relates relates-thumb"><div class="title"><h3>猜你喜欢</h3></div><ul><li><a href="support-vulkan-game.html"><img data-src="image/img.geek-docs.com/vulkan/201911161129.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的游戏|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li><li><a href="support-vulkan-gpu.html"><img data-src="image/img.geek-docs.com/vulkan/201911112317.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的GPU|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="vulkan-basic-types.html"><img data-src="image/img.geek-docs.com/vulkan/201911100840.jpg?x-oss-process=style/4-3-thumb" alt="Vulkan 基本类型|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li><a href="vulkan-visual-studio-environment-configuration.html"><img data-src="image/img.geek-docs.com/vulkan/201910191450.png?x-oss-process=style/4-3-thumb" alt="Vulkan Visual Studio环境配置|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li></ul></div>				<div class="title" id="comments">
+	<h3>评论 <b>1</b></h3>
+</div>
+<div id="respond" class="no_webshot">
+		
+	<form action="https://geek-docs.com/wp-comments-post.php" method="post" id="commentform">
+		<div class="comt">
+			<div class="comt-title">
+				<img alt='' data-src='https://secure.gravatar.com/avatar/?s=50&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/?s=100&#038;d=mm&#038;r=g 2x' class='avatar avatar-50 photo avatar-default' height='50' width='50' />				<p><a rel="nofollow" id="cancel-comment-reply-link" href="javascript:;">取消</a></p>
+			</div>
+			<div class="comt-box">
+				<textarea placeholder="你的评论可以一针见血" class="input-block-level comt-area" name="comment" id="comment" cols="100%" rows="3" tabindex="1" onkeydown="if(event.ctrlKey&amp;&amp;event.keyCode==13){document.getElementById('submit').click();return false};"></textarea>
+				<div class="comt-ctrl">
+					<div class="comt-tips"><input type='hidden' name='comment_post_ID' value='3205' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+<label for="comment_mail_notify" class="checkbox inline hide" style="padding-top:0"><input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" value="comment_mail_notify" checked="checked"/>有人回复时邮件通知我</label></div>
+					<button type="submit" name="submit" id="submit" tabindex="5">提交评论</button>
+					<!-- <span data-type="comment-insert-smilie" class="muted comt-smilie"><i class="icon-thumbs-up icon12"></i> 表情</span> -->
+				</div>
+			</div>												<div class="comt-comterinfo" id="comment-author-info" >
+						<ul>
+							<li class="form-inline"><label class="hide" for="author">昵称</label><input class="ipt" type="text" name="author" id="author" value="" tabindex="2" placeholder="昵称"><span class="text-muted">昵称 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="email">邮箱</label><input class="ipt" type="text" name="email" id="email" value="" tabindex="3" placeholder="邮箱"><span class="text-muted">邮箱 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="url">网址</label><input class="ipt" type="text" name="url" id="url" value="" tabindex="4" placeholder="网址"><span class="text-muted">网址</span></li>
+						</ul>
+					</div>
+									</div>	</form>
+	</div>
+<div id="postcomments">
+	<ol class="commentlist">
+		<li class="comment even thread-even depth-1" id="comment-293"><span class="comt-f">#1</span><div class="comt-avatar"><img alt='' data-src='https://secure.gravatar.com/avatar/ce6df58607f7045d29de6c9b414b72d7?s=50&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/ce6df58607f7045d29de6c9b414b72d7?s=100&#038;d=mm&#038;r=g 2x' class='avatar avatar-50 photo' height='50' width='50' /></div><div class="comt-main" id="div-comment-293"><p>源代码能提供下吗？</p>
+<div class="comt-meta"><span class="comt-author">夜小深</span>2年前 (2020-03-13)<a rel='nofollow' class='comment-reply-link' href="javascript:;" onclick='return addComment.moveForm( "div-comment-293", "293", "respond", "3205" )' aria-label='回复给夜小深'>回复</a></div></div></li><!-- #comment-## -->
+	</ol>
+	<div class="pagenav">
+			</div>
+</div>
+	</div>
+	</div></div>
+    <div class="tblside">
+    <div class="tblside-roll">
+		<h3>Vulkan 教程</h3><ul><li><a href="index.html">Vulkan 教程</a></li><li><a href="what-is-vulkan.html">什么是 Vulkan</a></li><li><a href="vulkan-development-environment-built-on-windows.html">Vulkan 开发环境搭建之Windows</a></li><li><a href="vulkan-understand-instance.html">Vulkan 创建Vulkan实例</a></li><li><a href="vulkan-physical-devices-and-queue-clusters.html">Vulkan 物理设备与队列</a></li><li><a href="vulkan-application-framework-prototype.html">Vulkan 应用程序框架原型</a></li><li><a href="understand-validation-layers.html">Vulkan 验证层</a></li><li><a href="vulkan-logical-devices-and-queues.html">Vulkan 逻辑设备与队列</a></li><li class="active"><a href="vulkan-exchange-of-chain.html">Vulkan 交换链</a></li><li><a href="vulkan-window-surface.html">Vulkan Window Surface</a></li><li><a href="vulkan-graphic-pipeline.html">Vulkan 图形管线</a></li><li><a href="vulkan-images-and-views.html">Vulkan 图像与视图</a></li><li><a href="vulkan-shader-modules.html">Vulkan 着色器模块</a></li><li><a href="vulkan-fixed-functions.html">Vulkan 固有功能</a></li><li><a href="vulkan-framebuffers.html">Vulkan 帧缓冲区</a></li><li><a href="vulkan-integration-pipeline.html">Vulkan 集成管线</a></li><li><a href="vulkan-render-passes.html">Vulkan 渲染通道</a></li><li><a href="vulkan-command-buffers.html">Vulkan 命令缓冲区</a></li><li><a href="vulkan-rendering-and-presentation.html">Vulkan 渲染和显示</a></li><li><a href="vulkan-reconstructed-commutative-chain.html">Vulkan 重构交换链</a></li><li><a href="vertex-input-description.html">Vulkan 顶点输入</a></li><li><a href="vertex-buffer-creation.html">Vulkan 创建顶点缓冲区</a></li><li><a href="vulkan-staging-buffer.html">Vulkan 临时缓冲区</a></li><li><a href="vulkan-index-buffer.html">Vulkan 索引缓冲区</a></li><li><a href="vulkan-descriptor-layout-and-buffer.html">Vulkan 描述符布局和缓冲区</a></li><li><a href="vulkan-descriptor-pool-and-sets.html">Vulkan 描述符池和集合</a></li><li><a href="vulkan-images.html">Vulkan 图像(Images)</a></li><li><a href="vulkan-image-view-and-sampler.html">Vulkan 图像视图和采样器</a></li><li><a href="combined-image-sampler.html">Vulkan 组合图像取样器</a></li><li><a href="vulkan-depth-buffering.html">Vulkan 深度缓冲区</a></li><li><a href="loading-models.html">Vulkan 加载模型</a></li><li><a href="vulkan-generating-mipmaps.html">Vulkan 生成贴图(mipmap)</a></li><li><a href="vulkan-multisampling.html">Vulkan 多重采样(Multisampling)</a></li><li><a href="vulkan-and-opengl.html">Vulkan和OpenGL区别</a></li><li><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li><li><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li></ul>    </div>
+	  		<div class="widget widget_recent_entries" id="recent-posts-3">		<h3>最新文章</h3>	
+					
+		</div></div>
+<div class="tbrside">
+<nav>
+<div id="geekdocs-fixed"></div>
+	
+</nav>
+</div>
+</section><footer class="footer">
+	<div class="container">
+							</div>
+</footer><div class="rollbar rollbar-rb"><ul><li class="rollbar-totop"><a href="javascript:(jsui.scrollTo());"><i class="fa fa-angle-up"></i><span>回顶</span></a><h6>回顶部<i></i></h6></li></ul></div>
+<script>
+window.jsui={
+	www: 'https://geek-docs.com',
+	uri: 'https://geek-docs.com/wp-content/themes/dux',
+	ver: '6.0',
+	roll: ["1","2","3"],
+	ajaxpager: '5',
+	url_rp: 'https://geek-docs.com/'
+};
+</script>
+        <!--[if lte IE 9]>
+        <script>
+            'use strict';
+            (function($) {
+                $(document).ready(function() {
+                    $('#ftwp-container').addClass('ftwp-ie9');
+                });
+            })(jQuery);
+        </script>
+        <![endif]-->
+		<link rel='stylesheet' id='prism-theme-style-css'  href='css/prism-hopscotch.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-toolbar-css'  href='css/prism-toolbar.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-line-numbers-css'  href='css/prism-line-numbers.min.css?ver=1.15.0' type='text/css' media='all' />
+<script type='text/javascript' src='js/jquery.min.js?ver=1.12.4'></script>
+<script type='text/javascript' src='js/katex.min.js?ver=0.10.0-beta'></script>
+<script type='text/javascript' src='js/bootstrap.min.js?ver=6.0'></script>
+<script type='text/javascript' src='js/loader.js?ver=6.0'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var q2w3_sidebar_options = [{"sidebar":"q2w3-default-sidebar","margin_top":10,"stop_id":"","screen_max_width":0,"screen_max_height":0,"width_inherit":false,"refresh_interval":1500,"window_load_hook":false,"disable_mo_api":false,"widgets":["geekdocs-fixed"]}];
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/q2w3-fixed-widget.min.js?ver=5.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var fixedtocOption = {"showAdminbar":"","inOutEffect":"zoom","isNestedList":"1","isColExpList":"1","showColExpIcon":"1","isAccordionList":"","isQuickMin":"1","isEscMin":"1","isEnterMax":"1","fixedMenu":"","scrollOffset":"10","fixedOffsetX":"10","fixedOffsetY":"0","fixedPosition":"middle-left","contentsFixedHeight":"","inPost":"","contentsFloatInPost":"left","contentsWidthInPost":"0","contentsHeightInPost":"","contentsColexpInitMobile":"1","inWidget":"","fixedWidget":"","triggerBorder":"medium","contentsBorder":"thin","triggerSize":"50","isClickableHeader":"","debug":"","postContentSelector":"#ftwp-postcontent","mobileMaxWidth":"768","disappearPoint":"content-bottom"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/ftoc.min.js?ver=3.1.24'></script>
+<script type='text/javascript' src='js/hoverIntent.min.js?ver=1.8.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var megamenu = {"timeout":"300","interval":"100"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/maxmegamenu.js?ver=2.9.7'></script>
+<script type='text/javascript' src='js/wp-embed.min.js?ver=4.9.20'></script>
+<script type='text/javascript' src='js/prism-core.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-autoloader.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-toolbar.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-line-numbers.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-show-language.min.js?ver=1.15.0'></script>
+		<script type="text/javascript">
+            (function ($) {
+                $(document).ready(function () {
+                    $(".katex.math.inline").each(function () {
+                        var parent = $(this).parent()[0];
+                        if (parent.localName !== "code") {
+                            var texTxt = $(this).text();
+                            var el = $(this).get(0);
+                            try {
+                                katex.render(texTxt, el);
+                            } catch (err) {
+                                $(this).html("<span class=\'err\'>" + err);
+                            }
+                        } else {
+                            $(this).parent().text($(this).parent().text());
+                        }
+                    });
+                    $(".katex.math.multi-line").each(function () {
+                        var texTxt = $(this).text();
+                        var el = $(this).get(0);
+                        try {
+                            katex.render(texTxt, el, {displayMode: true})
+                        } catch (err) {
+                            $(this).html("<span class=\'err\'>" + err)
+                        }
+                    });
+                })
+            })(jQuery);
+		</script>
+				<script type="text/javascript">
+			Prism.plugins.autoloader.languages_path = "http://cdn.bootcss.com/prism/1.15.0/components/"
+		</script>
+		</body></html>

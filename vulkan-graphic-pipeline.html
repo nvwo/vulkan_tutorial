@@ -1,0 +1,244 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=11,IE=10,IE=9,IE=8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-title" content="极客教程">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+<title>Vulkan 图形管线|极客教程</title><link rel='stylesheet' id='Katex-css'  href='css/katex.min.css?ver=0.10.0-beta' type='text/css' media='all' />
+<link rel='stylesheet' id='megamenu-css'   href='css/style.css?ver=e86352' type='text/css' media='all' />
+<link rel='stylesheet' id='dashicons-css'  href='css/dashicons.min.css?ver=4.9.20' type='text/css' media='all' />
+<link rel='stylesheet' id='_bootstrap-css'  href='css/bootstrap.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_fontawesome-css'  href='css/font-awesome.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_main-css'  href='css/main.css?ver=6.0' type='text/css' media='all' />        <style>
+            .eaa-clean {
+                padding: 0 !important;
+                border: none !important;
+            }            .eaa-ad.alignleft {
+                margin-right: 10px;
+            }            .eaa-ad.alignright {
+                margin-left: 10px;
+            }
+            .eaa-ad.debug{
+                background:peachpuff;
+                border:solid 2px #FF0000;
+                box-sizing: border-box;
+            }        </style>		
+<link rel='prev' title='Vulkan Window Surface' href='vulkan-window-surface.html' />
+<link rel='next' title='Vulkan 图像与视图' href='vulkan-images-and-views.html' />
+<link rel="canonical" href="vulkan-graphic-pipeline.html"/><meta name="keywords" content="Vulkan 图形管线">
+<meta name="description" content="Vulkan 图形管线，通过接下来的章节，我们将会开启有关图形管线的话题，通过对图形渲染管线的配置完成最后的三角形绘画。所谓图形管线就是将mesh使用到的vertices定点数据和贴图数据，转化为渲染targets像素的操作序列。简要的概述如下图所示:    Input assembler收集最原始的顶点数据，并且还可以使用索引缓冲区复用这些数据元素，而不必复制冗余的顶点数据副本。  vertex">
+<style>.container{max-width:1780px}a:hover, .site-navbar li:hover > a, .site-navbar li.active a:hover, .site-navbar a:hover, .search-on .site-navbar li.navto-search a, .topbar a:hover, .site-nav li.current-menu-item > a, .site-nav li.current-menu-parent > a, .site-search-form a:hover, .branding-primary .btn:hover, .title .more a:hover, .excerpt h2 a:hover, .excerpt .meta a:hover, .excerpt-minic h2 a:hover, .excerpt-minic .meta a:hover, .article-content .wp-caption:hover .wp-caption-text, .article-content a, .article-nav a:hover, .relates a:hover, .widget_links li a:hover, .widget_categories li a:hover, .widget_ui_comments strong, .widget_ui_posts li a:hover .text, .widget_ui_posts .nopic .text:hover , .widget_meta ul a:hover, .tagcloud a:hover, .textwidget a, .textwidget a:hover, .sign h3, #navs .item li a, .url, .url:hover, .excerpt h2 a:hover span, .widget_ui_posts a:hover .text span, .widget-navcontent .item-01 li a:hover span, .excerpt-minic h2 a:hover span, .relates a:hover span{color: #09a800;}.btn-primary, .label-primary, .branding-primary, .post-copyright:hover, .article-tags a, .pagination ul > .active > a, .pagination ul > .active > span, .pagenav .current, .widget_ui_tags .items a:hover, .sign .close-link, .pagemenu li.active a, .pageheader, .resetpasssteps li.active, #navs h2, #navs nav, .btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary, .tag-clouds a:hover{background-color: #09a800;}.btn-primary, .search-input:focus, #bdcs .bdcs-search-form-input:focus, #submit, .plinks ul li a:hover,.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary{border-color: #09a800;}.search-btn, .label-primary, #bdcs .bdcs-search-form-submit, #submit, .excerpt .cat{background-color: #09a800;}.excerpt .cat i{border-left-color:#09a800;}@media (max-width: 720px) {.site-navbar li.active a, .site-navbar li.active a:hover, .m-nav-show .m-icon-nav{color: #09a800;}}@media (max-width: 480px) {.pagination ul > li.next-page a{background-color:#09a800;}}.post-actions .action.action-like,.pagemenu li.current-menu-item > a{background-color: #09a800;}.catleader h1{border-left-color: #09a800;}.loop-product-filters ul .current-cat>a{color: #09a800;}.tblside-roll h3{background-color:#09a800 !important;}.tblside-roll li.active a{color:#09a800 !important;border-left-color:#09a800 !important;}.single .content, .category .content{margin-right: 300px !important;margin-left: 300px !important;}
+.tblside{position: relative;float: left;width: 300px;margin-left: -100%;overflow:hidden;}
+.tblside-roll{margin-bottom: 15px;}
+.tblside-ads{margin-bottom: 15px;}
+.tblside-ads h3{margin:0px 0px 15px 0px;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tblside-roll li{margin-bottom: 0;}
+.tblside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:break-word;}
+.tblside-roll li.cat-item{margin-left: 0;}
+.tblside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tblside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+.tbrside{position: relative;float: right;width: 300px;margin-left: -100%;overflow:hidden;}
+.tbrside-roll{margin-bottom: 15px;}
+.tbrside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tbrside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tbrside-roll li{margin-bottom: 0;}
+.tbrside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.tbrside-roll li.cat-item{margin-left: 0;}
+.tbrside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tbrside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+@media (max-width:1100px){
+	.single .content, .category .content{margin-left: 0 !important;margin-right: 0 !important;}
+	.tblside{display: none !important;}
+	.tbrside{display: none !important;}
+}</style><style type="text/css">/** Mega Menu CSS: fs **/</style>
+<link rel="shortcut icon" href="image/favicon.ico">
+<!--[if lt IE 9]><script src="https://geek-docs.com/wp-content/themes/dux/js/libs/html5.min.js"></script><![endif]-->
+</head>
+<body class="post-template-default single single-post postid-3217 single-format-standard m-excerpt-cat topbar-off comment-open site-layout-3 text-justify-on mega-menu-nav">
+<header class="header">
+	<div class="container">
+		<div class="logo"><a href="https://geek-docs.com/" title="极客教程 - 以工匠精神打磨精品教程"><img src="image/static/logo.png" alt="极客教程 - 以工匠精神打磨精品教程">极客教程</a></div>				<ul class="site-nav site-navbar">
+			<div id="mega-menu-wrap-nav" class="mega-menu-wrap"><div class="mega-menu-toggle"><div class="mega-toggle-blocks-left"></div><div class="mega-toggle-blocks-center"></div><div class="mega-toggle-blocks-right"><div class='mega-toggle-block mega-menu-toggle-animated-block mega-toggle-block-0' id='mega-toggle-block-0'><button aria-label="Toggle Menu" class="mega-toggle-animated mega-toggle-animated-slider" type="button" aria-expanded="false">
+                  <span class="mega-toggle-animated-box">
+                    <span class="mega-toggle-animated-inner"></span>
+                  </span>
+                </button></div></div></div><ul id="mega-menu-nav" class="mega-menu max-mega-menu mega-menu-horizontal mega-no-js" data-event="hover" data-effect="disabled" data-effect-speed="200" data-effect-mobile="disabled" data-effect-speed-mobile="0" data-mobile-force-width="false" data-second-click="go" data-document-click="collapse" data-vertical-behaviour="standard" data-breakpoint="768" data-unbind="true" data-mobile-state="collapse_all" data-hover-intent-timeout="300" data-hover-intent-interval="100"><li class='mega-menu-item mega-menu-item-type-custom mega-menu-item-object-custom mega-menu-item-has-children mega-align-bottom-left mega-menu-flyout mega-menu-item-18090' id='mega-menu-item-18090'><a class="mega-menu-link" aria-haspopup="true" aria-expanded="false" tabindex="0">基础编程<span class="mega-indicator"></span></a>						<i class="fa fa-bars m-icon-nav"></i>
+			</div>
+</header>
+<div class="site-search">
+	<div class="container">
+		<form method="get" class="site-search-form" action="https://geek-docs.com/" ><input class="search-input" name="s" type="text" placeholder="输入关键字" value=""><button class="search-btn" type="submit"><i class="fa fa-search"></i></button></form>	</div>
+</div>	<div class="breadcrumbs">
+		<div class="container">当前位置：<a href="/">极客教程</a> <small>></small> <a href="/">Vulkan</a> <small>></small> <a href="">Vulkan 教程</a> <small>></small> Vulkan 图形管线</div>
+	</div>
+<section class="container">
+	<div class="content-wrap">
+	<div class="content">
+				<header class="article-header">
+			<h1 class="article-title"><a href="vulkan-graphic-pipeline.html">Vulkan 图形管线</a></h1>
+		</header>
+				
+				<nav class="article-nav">
+			<div class="asb aub-post aub-post-01">
+
+</div>			<span class="article-nav-prev">上一篇 <a href="vulkan-window-surface.html" rel="prev">Vulkan Window Surface</a></span>
+			<span class="article-nav-next">下一篇 <a href="vulkan-images-and-views.html" rel="next">Vulkan 图像与视图</a></span>
+		</nav>
+				
+		<article class="article-content">
+			<p><strong>Vulkan 图形管线</strong>，通过接下来的章节，我们将会开启有关图形管线的话题，通过对图形渲染管线的配置完成最后的三角形绘画。所谓图形管线就是将<code>mesh</code>使用到的<code>vertices</code>定点数据和贴图数据，转化为渲染<code>targets</code>像素的操作序列。简要的概述如下图所示:</p>
+<p><img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/1113490-20170605134655153-610296348.png" alt="Vulkan 图形管线" title="Vulkan 图形管线" /></p>
+<p><code>Input assembler</code>收集最原始的顶点数据，并且还可以使用索引缓冲区复用这些数据元素，而不必复制冗余的顶点数据副本。</p>
+<p><code>vertex shader</code>会应用在每一个顶点数据，通常应用变换操作，从而将顶点的位置坐标数据从模型空间转换为屏幕空间。在处理完毕之后会将数据继续在管线传递下去。</p>
+<p><code>tessellation shader</code>曲面着色器允许基于某些规则进一步细分几何数据增加网格的质量。经常应用与墙面和楼梯表面，使附近看起来不是那么平坦。</p>
+<p><code>geometry shader</code>集合着色器应用在每一个图元上，可用于增减图元，它与曲面着色器类似，但更加灵活。然而，它在今天的应用中并没有太多的应用情景，因为除了<code>Intel</code>的集成显卡外，大多数显卡性能支持都不理想。</p>
+<p>光栅化阶段将图元分解为片元。这些是填充在帧缓冲区上的像素元素。屏幕外区域的片元会被丢弃，顶点着色器输出的数据在传递到片元着色器的过程中会进行内插值，如图所示。除此之外，根据深度测试的结果也会对片元进行丢弃。</p>
+<p><code>fragment shader</code>应用于每个片元，确定每个帧缓冲区中写入的片元数据的颜色和深度值。片元着色器可以使用顶点着色器的插值数据，贴图的UV坐标和光源法线数据。</p>
+<p>混色操作阶段会对不同片元的颜色进行混合，最终映射到帧缓冲区的同一个像素上。片元也可以简单的互相重写，叠加或者根据透明度混合。</p>
+<p>绿色的阶段被称为固定流水线。这个阶段允许使用自定义的参数数值，但是它内部的工作逻辑是预制好的。</p>
+<p>橙色的阶段被称为可编程阶段<strong>programmable</strong>，我们可以向GPU提交自己编写的代码执行具体的逻辑。比如在使用<code>fragment shader</code>的时候，可以实现任何从贴图到灯光的光线追踪。这些程序同时运行在多核GPU上处理许多对象，比如并行的顶点和片段程序。</p>
+<p>如果之前使用过旧的API(<code>OpenGL</code>和<code>Direct3D</code>),那么将可以随意通过<strong>glBlendFunc</strong>和<strong>OMSetBlendState</strong>调用更改管线设置。<code>Vulkan中</code>的图形管线几乎不可改变，因此如果需要更改着色器，绑定到不同的帧缓冲区或者更改混合函数，则必须从头创建管线。缺点是必须创建一些管线，这些管线代表在渲染操作中使用的不同的组合状态。但是由于所有管线的操作都是提前知道的，所以可以通过驱动程序更好的优化它。</p>
+<p>一些可编程阶段是基于打算做什么而决定的。比如，如果只是简单的绘制几何图形，则可以禁用<code>tessellation</code>和<code>geometry</code>着色器。如果只对深度值感兴趣，则可以禁用<code>fragment</code>着色器，这对于生成<strong>shadow map</strong>生成很有用。</p>
+<p>在下一个章节中，我们首先创建将三角形放在屏幕上所需要的两个可编程阶段:<code>vertice shader</code>和<code>fragment shader</code>。固定功能的设置包括<code>blending mode</code>, <code>viewport</code>, <code>rasterization</code>将在之后的章节中设置。在<code>Vulkan</code>中设置图形流水线的最后一部分内容涉及输入和输出帧缓冲区。</p>
+<p>在<strong>initVulkan</strong>中创建函数<strong>createGraphicsPipeline</strong>并在<strong>createImageViews</strong>后立即调用。我们在下一章节介绍函数功能。</p>
+<pre><code class="language-cpp  line-numbers">void initVulkan() {
+    createInstance();
+    setupDebugCallback();
+    createSurface();
+    pickPhysicalDevice();
+    createLogicalDevice();
+    createSwapChain();
+    createImageViews();
+    createGraphicsPipeline();
+}...void createGraphicsPipeline() {}
+</code></pre>
+<p>在结尾处分享一下<code>Vulkan</code>官方的图形管线结构图，如下:<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/1113490-20170612104357243-1620162630.png" alt="Vulkan 图形管线" title="Vulkan 图形管线" /></p><div id="eaa_after_nth_p" class="eaa-wrapper eaa_after_nth_p eaa_desktop"><div class="eaa-ad  " style=""></div></div>
+</p>		</article>
+		<div class="asb aub-post aub-post-02">
+						            <div class="post-actions">
+            	<a href="javascript:;" etap="like" class="post-like action action-like" data-pid="3217"><i class="fa fa-thumbs-o-up"></i>赞(<span>9</span>)</a>            	            	            </div>
+        				
+					<div class="action-share"></div>
+		
+		<div class="article-tags"></div>
+		
+		
+		<div class="relates relates-thumb"><div class="title"><h3>猜你喜欢</h3></div><ul><li><a href="support-vulkan-game.html"><img data-src="image/img.geek-docs.com/vulkan/201911161129.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的游戏|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li><li><a href="support-vulkan-gpu.html"><img data-src="image/img.geek-docs.com/vulkan/201911112317.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的GPU|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="vulkan-basic-types.html"><img data-src="image/img.geek-docs.com/vulkan/201911100840.jpg?x-oss-process=style/4-3-thumb" alt="Vulkan 基本类型|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li><a href="vulkan-visual-studio-environment-configuration.html"><img data-src="image/img.geek-docs.com/vulkan/201910191450.png?x-oss-process=style/4-3-thumb" alt="Vulkan Visual Studio环境配置|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li></ul></div>				<div class="title" id="comments">
+	<h3>评论 <small>抢沙发</small></h3>
+</div>
+<div id="respond" class="no_webshot">
+		
+	<form action="https://geek-docs.com/wp-comments-post.php" method="post" id="commentform">
+		<div class="comt">
+			<div class="comt-title">
+				<img alt='' data-src='https://secure.gravatar.com/avatar/?s=50&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/?s=100&#038;d=mm&#038;r=g 2x' class='avatar avatar-50 photo avatar-default' height='50' width='50' />				<p><a rel="nofollow" id="cancel-comment-reply-link" href="javascript:;">取消</a></p>
+			</div>
+			<div class="comt-box">
+				<textarea placeholder="你的评论可以一针见血" class="input-block-level comt-area" name="comment" id="comment" cols="100%" rows="3" tabindex="1" onkeydown="if(event.ctrlKey&amp;&amp;event.keyCode==13){document.getElementById('submit').click();return false};"></textarea>
+				<div class="comt-ctrl">
+					<div class="comt-tips"><input type='hidden' name='comment_post_ID' value='3217' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+<label for="comment_mail_notify" class="checkbox inline hide" style="padding-top:0"><input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" value="comment_mail_notify" checked="checked"/>有人回复时邮件通知我</label></div>
+					<button type="submit" name="submit" id="submit" tabindex="5">提交评论</button>
+					<!-- <span data-type="comment-insert-smilie" class="muted comt-smilie"><i class="icon-thumbs-up icon12"></i> 表情</span> -->
+				</div>
+			</div>												<div class="comt-comterinfo" id="comment-author-info" >
+						<ul>
+							<li class="form-inline"><label class="hide" for="author">昵称</label><input class="ipt" type="text" name="author" id="author" value="" tabindex="2" placeholder="昵称"><span class="text-muted">昵称 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="email">邮箱</label><input class="ipt" type="text" name="email" id="email" value="" tabindex="3" placeholder="邮箱"><span class="text-muted">邮箱 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="url">网址</label><input class="ipt" type="text" name="url" id="url" value="" tabindex="4" placeholder="网址"><span class="text-muted">网址</span></li>
+						</ul>
+					</div>
+									</div>	</form>
+	</div>
+	</div>
+	</div></div>
+    <div class="tblside">
+    <div class="tblside-roll">
+		<h3>Vulkan 教程</h3><ul><li><a href="index.html">Vulkan 教程</a></li><li><a href="what-is-vulkan.html">什么是 Vulkan</a></li><li><a href="vulkan-development-environment-built-on-windows.html">Vulkan 开发环境搭建之Windows</a></li><li><a href="vulkan-understand-instance.html">Vulkan 创建Vulkan实例</a></li><li><a href="vulkan-physical-devices-and-queue-clusters.html">Vulkan 物理设备与队列</a></li><li><a href="vulkan-application-framework-prototype.html">Vulkan 应用程序框架原型</a></li><li><a href="understand-validation-layers.html">Vulkan 验证层</a></li><li><a href="vulkan-logical-devices-and-queues.html">Vulkan 逻辑设备与队列</a></li><li><a href="vulkan-exchange-of-chain.html">Vulkan 交换链</a></li><li><a href="vulkan-window-surface.html">Vulkan Window Surface</a></li><li class="active"><a href="vulkan-graphic-pipeline.html">Vulkan 图形管线</a></li><li><a href="vulkan-images-and-views.html">Vulkan 图像与视图</a></li><li><a href="vulkan-shader-modules.html">Vulkan 着色器模块</a></li><li><a href="vulkan-fixed-functions.html">Vulkan 固有功能</a></li><li><a href="vulkan-framebuffers.html">Vulkan 帧缓冲区</a></li><li><a href="vulkan-integration-pipeline.html">Vulkan 集成管线</a></li><li><a href="vulkan-render-passes.html">Vulkan 渲染通道</a></li><li><a href="vulkan-command-buffers.html">Vulkan 命令缓冲区</a></li><li><a href="vulkan-rendering-and-presentation.html">Vulkan 渲染和显示</a></li><li><a href="vulkan-reconstructed-commutative-chain.html">Vulkan 重构交换链</a></li><li><a href="vertex-input-description.html">Vulkan 顶点输入</a></li><li><a href="vertex-buffer-creation.html">Vulkan 创建顶点缓冲区</a></li><li><a href="vulkan-staging-buffer.html">Vulkan 临时缓冲区</a></li><li><a href="vulkan-index-buffer.html">Vulkan 索引缓冲区</a></li><li><a href="vulkan-descriptor-layout-and-buffer.html">Vulkan 描述符布局和缓冲区</a></li><li><a href="vulkan-descriptor-pool-and-sets.html">Vulkan 描述符池和集合</a></li><li><a href="vulkan-images.html">Vulkan 图像(Images)</a></li><li><a href="vulkan-image-view-and-sampler.html">Vulkan 图像视图和采样器</a></li><li><a href="combined-image-sampler.html">Vulkan 组合图像取样器</a></li><li><a href="vulkan-depth-buffering.html">Vulkan 深度缓冲区</a></li><li><a href="loading-models.html">Vulkan 加载模型</a></li><li><a href="vulkan-generating-mipmaps.html">Vulkan 生成贴图(mipmap)</a></li><li><a href="vulkan-multisampling.html">Vulkan 多重采样(Multisampling)</a></li><li><a href="vulkan-and-opengl.html">Vulkan和OpenGL区别</a></li><li><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li><li><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li></ul>    </div>
+	  		<div class="widget widget_recent_entries" id="recent-posts-3">		<h3>最新文章</h3>	
+					
+		</div></div>
+<div class="tbrside">
+<nav>
+<div id="geekdocs-fixed"></div>
+	
+</nav>
+</div>
+</section><footer class="footer">
+	<div class="container">
+							</div>
+</footer><div class="rollbar rollbar-rb"><ul><li class="rollbar-totop"><a href="javascript:(jsui.scrollTo());"><i class="fa fa-angle-up"></i><span>回顶</span></a><h6>回顶部<i></i></h6></li></ul></div>
+<script>
+window.jsui={
+	www: 'https://geek-docs.com',
+	uri: 'https://geek-docs.com/wp-content/themes/dux',
+	ver: '6.0',
+	roll: ["1","2","3"],
+	ajaxpager: '5',
+	url_rp: 'https://geek-docs.com/'
+};
+</script>
+<link rel='stylesheet' id='prism-theme-style-css'  href='css/prism-hopscotch.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-toolbar-css'  href='css/prism-toolbar.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-line-numbers-css'  href='css/prism-line-numbers.min.css?ver=1.15.0' type='text/css' media='all' />
+<script type='text/javascript' src='js/jquery.min.js?ver=1.12.4'></script>
+<script type='text/javascript' src='js/katex.min.js?ver=0.10.0-beta'></script>
+<script type='text/javascript' src='js/bootstrap.min.js?ver=6.0'></script>
+<script type='text/javascript' src='js/loader.js?ver=6.0'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var q2w3_sidebar_options = [{"sidebar":"q2w3-default-sidebar","margin_top":10,"stop_id":"","screen_max_width":0,"screen_max_height":0,"width_inherit":false,"refresh_interval":1500,"window_load_hook":false,"disable_mo_api":false,"widgets":["geekdocs-fixed"]}];
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/q2w3-fixed-widget.min.js?ver=5.1'></script>
+<script type='text/javascript' src='js/hoverIntent.min.js?ver=1.8.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var megamenu = {"timeout":"300","interval":"100"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/maxmegamenu.js?ver=2.9.7'></script>
+<script type='text/javascript' src='js/wp-embed.min.js?ver=4.9.20'></script>
+<script type='text/javascript' src='js/prism-core.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-autoloader.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-toolbar.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-line-numbers.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-show-language.min.js?ver=1.15.0'></script>
+		<script type="text/javascript">
+            (function ($) {
+                $(document).ready(function () {
+                    $(".katex.math.inline").each(function () {
+                        var parent = $(this).parent()[0];
+                        if (parent.localName !== "code") {
+                            var texTxt = $(this).text();
+                            var el = $(this).get(0);
+                            try {
+                                katex.render(texTxt, el);
+                            } catch (err) {
+                                $(this).html("<span class=\'err\'>" + err);
+                            }
+                        } else {
+                            $(this).parent().text($(this).parent().text());
+                        }
+                    });
+                    $(".katex.math.multi-line").each(function () {
+                        var texTxt = $(this).text();
+                        var el = $(this).get(0);
+                        try {
+                            katex.render(texTxt, el, {displayMode: true})
+                        } catch (err) {
+                            $(this).html("<span class=\'err\'>" + err)
+                        }
+                    });
+                })
+            })(jQuery);
+		</script>
+				<script type="text/javascript">
+			Prism.plugins.autoloader.languages_path = "http://cdn.bootcss.com/prism/1.15.0/components/"
+		</script>
+		</body></html>

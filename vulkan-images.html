@@ -1,0 +1,576 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=11,IE=10,IE=9,IE=8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-title" content="极客教程">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+<title>Vulkan 图像(Images)|极客教程</title><link rel='stylesheet' id='Katex-css'  href='css/katex.min.css?ver=0.10.0-beta' type='text/css' media='all' />
+<link rel='stylesheet' id='megamenu-css'   href='css/style.css?ver=e86352' type='text/css' media='all' />
+<link rel='stylesheet' id='dashicons-css'  href='css/dashicons.min.css?ver=4.9.20' type='text/css' media='all' />
+<link rel='stylesheet' id='_bootstrap-css'  href='css/bootstrap.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_fontawesome-css'  href='css/font-awesome.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_main-css'  href='css/main.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='fixedtoc-style-css'  href='css/ftoc.min.css?ver=3.1.24' type='text/css' media='all' />
+<style id='fixedtoc-style-inline-css' type='text/css'>
+#ftwp-container.ftwp-wrap #ftwp-contents { width: 255px; height: auto; } #ftwp-container.ftwp-wrap #ftwp-trigger { width: 50px; height: 50px; font-size: 30px; } #ftwp-container #ftwp-trigger.ftwp-border-medium { font-size: 29px; } #ftwp-container.ftwp-wrap #ftwp-header { font-size: 16px; font-family: inherit; } #ftwp-container.ftwp-wrap #ftwp-header-title { font-weight: bold; } #ftwp-container.ftwp-wrap #ftwp-list { font-size: 14px; font-family: inherit; } #ftwp-container #ftwp-list.ftwp-liststyle-decimal .ftwp-anchor::before { font-size: 14px; } #ftwp-container #ftwp-list.ftwp-strong-first>.ftwp-item>.ftwp-anchor .ftwp-text { font-size: 15.4px; } #ftwp-container #ftwp-list.ftwp-strong-first.ftwp-liststyle-decimal>.ftwp-item>.ftwp-anchor::before { font-size: 15.4px; } #ftwp-container.ftwp-wrap #ftwp-trigger { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-trigger { border-color: rgba(51,51,51,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents { border-color: rgba(51,51,51,0.95); } #ftwp-container.ftwp-wrap #ftwp-header { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents:hover #ftwp-header { background: #f3f3f3; } #ftwp-container.ftwp-wrap #ftwp-list { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents:hover #ftwp-list { background: #f3f3f3; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-anchor:hover { color: #00A368; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-anchor:focus, #ftwp-container.ftwp-wrap #ftwp-list .ftwp-active, #ftwp-container.ftwp-wrap #ftwp-list .ftwp-active:hover { color: #fff; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-text::before { background: rgba(9,168,0,0.95); } .ftwp-heading-target::before { background: rgba(9,168,0,0.95); }
+</style>        <style>
+            .eaa-clean {
+                padding: 0 !important;
+                border: none !important;
+            }            .eaa-ad.alignleft {
+                margin-right: 10px;
+            }            .eaa-ad.alignright {
+                margin-left: 10px;
+            }
+            .eaa-ad.debug{
+                background:peachpuff;
+                border:solid 2px #FF0000;
+                box-sizing: border-box;
+            }        </style>		
+<link rel='prev' title='如何构建一个大数据平台' href='https://geek-docs.com/bigdata/bigdata-concept/how-to-build-a-big-data-platform.html' />
+<link rel='next' title='大数据平台的数据来源' href='https://geek-docs.com/bigdata/bigdata-concept/the-source-of-data-for-large-data-platform.html' />
+<link rel="canonical" href="vulkan-images.html"/><meta name="keywords" content="Vulkan 图像,Vulkan Images,几何图形">
+<meta name="description" content="Vulkan 图像(Images)，到目前为止，几何图形使用每个顶点颜色进行着色处理，这是一个局限性比较大的方式。在本教程的一部分内容中，我们实现纹理映射，使得几何图形看起来更加生动有趣。这也会允许我们在未来的章节中加载和绘制基本的3D模型。  介绍  添加一个纹理贴图到应用程序需要以下几个步骤：   创建设备内存支持的图像对象 从图像文件填充像素 创建图像采样器 添加组合的图像采样器描述符，并从">
+<style>.container{max-width:1780px}a:hover, .site-navbar li:hover > a, .site-navbar li.active a:hover, .site-navbar a:hover, .search-on .site-navbar li.navto-search a, .topbar a:hover, .site-nav li.current-menu-item > a, .site-nav li.current-menu-parent > a, .site-search-form a:hover, .branding-primary .btn:hover, .title .more a:hover, .excerpt h2 a:hover, .excerpt .meta a:hover, .excerpt-minic h2 a:hover, .excerpt-minic .meta a:hover, .article-content .wp-caption:hover .wp-caption-text, .article-content a, .article-nav a:hover, .relates a:hover, .widget_links li a:hover, .widget_categories li a:hover, .widget_ui_comments strong, .widget_ui_posts li a:hover .text, .widget_ui_posts .nopic .text:hover , .widget_meta ul a:hover, .tagcloud a:hover, .textwidget a, .textwidget a:hover, .sign h3, #navs .item li a, .url, .url:hover, .excerpt h2 a:hover span, .widget_ui_posts a:hover .text span, .widget-navcontent .item-01 li a:hover span, .excerpt-minic h2 a:hover span, .relates a:hover span{color: #09a800;}.btn-primary, .label-primary, .branding-primary, .post-copyright:hover, .article-tags a, .pagination ul > .active > a, .pagination ul > .active > span, .pagenav .current, .widget_ui_tags .items a:hover, .sign .close-link, .pagemenu li.active a, .pageheader, .resetpasssteps li.active, #navs h2, #navs nav, .btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary, .tag-clouds a:hover{background-color: #09a800;}.btn-primary, .search-input:focus, #bdcs .bdcs-search-form-input:focus, #submit, .plinks ul li a:hover,.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary{border-color: #09a800;}.search-btn, .label-primary, #bdcs .bdcs-search-form-submit, #submit, .excerpt .cat{background-color: #09a800;}.excerpt .cat i{border-left-color:#09a800;}@media (max-width: 720px) {.site-navbar li.active a, .site-navbar li.active a:hover, .m-nav-show .m-icon-nav{color: #09a800;}}@media (max-width: 480px) {.pagination ul > li.next-page a{background-color:#09a800;}}.post-actions .action.action-like,.pagemenu li.current-menu-item > a{background-color: #09a800;}.catleader h1{border-left-color: #09a800;}.loop-product-filters ul .current-cat>a{color: #09a800;}.tblside-roll h3{background-color:#09a800 !important;}.tblside-roll li.active a{color:#09a800 !important;border-left-color:#09a800 !important;}.single .content, .category .content{margin-right: 300px !important;margin-left: 300px !important;}
+.tblside{position: relative;float: left;width: 300px;margin-left: -100%;overflow:hidden;}
+.tblside-roll{margin-bottom: 15px;}
+.tblside-ads{margin-bottom: 15px;}
+.tblside-ads h3{margin:0px 0px 15px 0px;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tblside-roll li{margin-bottom: 0;}
+.tblside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:break-word;}
+.tblside-roll li.cat-item{margin-left: 0;}
+.tblside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tblside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+.tbrside{position: relative;float: right;width: 300px;margin-left: -100%;overflow:hidden;}
+.tbrside-roll{margin-bottom: 15px;}
+.tbrside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tbrside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tbrside-roll li{margin-bottom: 0;}
+.tbrside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.tbrside-roll li.cat-item{margin-left: 0;}
+.tbrside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tbrside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+@media (max-width:1100px){
+	.single .content, .category .content{margin-left: 0 !important;margin-right: 0 !important;}
+	.tblside{display: none !important;}
+	.tbrside{display: none !important;}
+}</style><style type="text/css">/** Mega Menu CSS: fs **/</style>
+<link rel="shortcut icon" href="image/favicon.ico">
+<!--[if lt IE 9]><script src="https://geek-docs.com/wp-content/themes/dux/js/libs/html5.min.js"></script><![endif]-->
+</head>
+<body class="post-template-default single single-post postid-4502 single-format-standard m-excerpt-cat topbar-off comment-open site-layout-3 text-justify-on mega-menu-nav has-ftoc">
+<header class="header">
+	<div class="container">
+		<div class="logo"><a href="https://geek-docs.com/" title="极客教程 - 以工匠精神打磨精品教程"><img src="image/static/logo.png" alt="极客教程 - 以工匠精神打磨精品教程">极客教程</a></div>				<ul class="site-nav site-navbar">
+			<div id="mega-menu-wrap-nav" class="mega-menu-wrap"><div class="mega-menu-toggle"><div class="mega-toggle-blocks-left"></div><div class="mega-toggle-blocks-center"></div><div class="mega-toggle-blocks-right"><div class='mega-toggle-block mega-menu-toggle-animated-block mega-toggle-block-0' id='mega-toggle-block-0'><button aria-label="Toggle Menu" class="mega-toggle-animated mega-toggle-animated-slider" type="button" aria-expanded="false">
+                  <span class="mega-toggle-animated-box">
+                    <span class="mega-toggle-animated-inner"></span>
+                  </span>
+                </button></div></div></div><ul id="mega-menu-nav" class="mega-menu max-mega-menu mega-menu-horizontal mega-no-js" data-event="hover" data-effect="disabled" data-effect-speed="200" data-effect-mobile="disabled" data-effect-speed-mobile="0" data-mobile-force-width="false" data-second-click="go" data-document-click="collapse" data-vertical-behaviour="standard" data-breakpoint="768" data-unbind="true" data-mobile-state="collapse_all" data-hover-intent-timeout="300" data-hover-intent-interval="100"><li class='mega-menu-item mega-menu-item-type-custom mega-menu-item-object-custom mega-menu-item-has-children mega-align-bottom-left mega-menu-flyout mega-menu-item-18090' id='mega-menu-item-18090'><a class="mega-menu-link" aria-haspopup="true" aria-expanded="false" tabindex="0">基础编程<span class="mega-indicator"></span></a>						<i class="fa fa-bars m-icon-nav"></i>
+			</div>
+</header>
+<div class="site-search">
+	<div class="container">
+		<form method="get" class="site-search-form" action="https://geek-docs.com/" ><input class="search-input" name="s" type="text" placeholder="输入关键字" value=""><button class="search-btn" type="submit"><i class="fa fa-search"></i></button></form>	</div>
+</div>	<div class="breadcrumbs">
+		<div class="container">当前位置：<a href="/">极客教程</a> <small>></small> <a href="/">Vulkan</a> <small>></small> <a href="">Vulkan 教程</a> <small>></small> Vulkan 图像(Images)</div>
+	</div>
+<section class="container">
+	<div class="content-wrap">
+	<div class="content">
+				<header class="article-header">
+			<h1 class="article-title"><a href="vulkan-images.html">Vulkan 图像(Images)</a></h1>
+		</header>
+				
+				<nav class="article-nav">
+			<div class="asb aub-post aub-post-01">
+
+</div>			<span class="article-nav-prev">上一篇 <a href="https://geek-docs.com/bigdata/bigdata-concept/how-to-build-a-big-data-platform.html" rel="prev">如何构建一个大数据平台</a></span>
+			<span class="article-nav-next">下一篇 <a href="https://geek-docs.com/bigdata/bigdata-concept/the-source-of-data-for-large-data-platform.html" rel="next">大数据平台的数据来源</a></span>
+		</nav>
+				
+		<article class="article-content">
+			<div id="ftwp-container" class="ftwp-wrap ftwp-hidden-state ftwp-minimize ftwp-middle-left"><button type="button" id="ftwp-trigger" class="ftwp-shape-round ftwp-border-medium" title="单击以最大化目录"><span class="ftwp-trigger-icon ftwp-icon-menu"></span></button><nav id="ftwp-contents" class="ftwp-shape-round ftwp-border-thin"><header id="ftwp-header"><span id="ftwp-header-control" class="ftwp-icon-menu"></span><button type="button" id="ftwp-header-minimize" class="ftwp-icon-minimize" aria-labelledby="ftwp-header-title" aria-label="Expand or collapse"></button><h3 id="ftwp-header-title">文章目录</h3></header><ol id="ftwp-list" class="ftwp-liststyle-decimal ftwp-effect-bounce-to-right ftwp-list-nest ftwp-strong-first ftwp-colexp ftwp-colexp-icon"><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-1"><span class="ftwp-text">介绍</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-2"><span class="ftwp-text">图像库</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-3"><span class="ftwp-text">加载图像</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-4"><span class="ftwp-text">临时缓冲区</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-5"><span class="ftwp-text">纹理图像</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-6"><span class="ftwp-text">布局转换</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-7"><span class="ftwp-text">缓冲区拷贝到图像</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-8"><span class="ftwp-text">准备纹理图像</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-9"><span class="ftwp-text">预屏障</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-10"><span class="ftwp-text">清理缓冲区</span></a></li></ol></nav></div>
+<div id="ftwp-postcontent"><p><strong>Vulkan 图像</strong>(<strong>Images</strong>)，到目前为止，几何图形使用每个顶点颜色进行着色处理，这是一个局限性比较大的方式。在本教程的一部分内容中，我们实现纹理映射，使得几何图形看起来更加生动有趣。这也会允许我们在未来的章节中加载和绘制基本的3D模型。</p>
+<h2 id="ftoc-heading-1" class="ftwp-heading">介绍</h2>
+<p>添加一个纹理贴图到应用程序需要以下几个步骤：</p>
+<ul>
+<li>创建设备内存支持的图像对象</li>
+<li>从图像文件填充像素</li>
+<li>创建图像采样器</li>
+<li>添加组合的图像采样器描述符，并从纹理采样颜色信息</li>
+</ul>
+<p>我们之前已经使用过图像对象，但是它们都是由交换链扩展自动创建的。这次我们将要自己创建。创建一个图像及填充数据与之前的顶点缓冲区创建类似。我们开始使用暂存资源并使用像素数据进行填充，接着将其拷贝到最终用于渲染使用的图像对象中。尽管可以为此创建一个暂存图像，Vulkan也允许从<strong>VkBuffer</strong>中拷贝像素到图像中，这部分API在一些硬件上非常有效率 <strong>faster on some hardware</strong>。我们首先会创建缓冲区并通过像素进行填充，接着创建一个图像对象拷贝像素。创建一个图像与创建缓冲区类似。就像我们之前看到的那样，它需要查询内存需求，分配设备内存并进行绑定。</p>
+<p>然而，仍然有一些额外的工作需要面对，当我们使用图像的时候。我们知道图像可以有不同的布局，它影响实际像素在内存中的组织。由于图形硬件的工作原理，简单的逐行存储像素可能不是最佳的性能选择。对图像执行任何操作时，必须确保它们有最佳的布局，以便在该操作中使用。实际上我们已经在指定渲染通道的时候看过这些布局类型：</p>
+<ul>
+<li><strong>VK_IMAGE_LAYOUT_PRESENT_SRC_KHR</strong>: 用于呈现，使用最佳</li>
+<li><strong>VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL</strong>: 当使用附件从片段着色器进行写入时候，使用最佳</li>
+<li><strong>VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL</strong>: 作为传送源操作的时候，使用最佳，比如<strong>vkCmdCopyImageToBuffer</strong></li>
+<li><strong>VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL</strong>: 作为传输目的地的时候，使用最佳，比如<strong>vkCmdCopyBufferToImage</strong></li>
+<li><strong>VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL</strong>: 着色器中用于采样，使用最佳</li>
+</ul>
+<p>变换图像布局的最常见方式之一是管线屏障 pipeline barrier。管线屏障主要用于同步访问资源，诸如确保图像在读之前写入，但是也可以用于布局变换。在本章节中我们将会看到如何使用管线屏障完成此任务。除此之外，屏障也可以用于<strong>VK_SHARING_MODE_EXCLUSIVE</strong>模式下队列簇宿主的变换。</p>
+<h2 id="ftoc-heading-2" class="ftwp-heading">图像库</h2>
+<p>用于加载图片的库有很多，甚至可以自己编写代码加载简单格式的图片比如BMP和PPM。在本教程中我们将会使用<strong>stb_image</strong>库。优势是所有的代码都在单一的文件中，所以它不需要任何棘手的构建配置。下载<strong>stb_image.h</strong>头文件并将它保存在方便的位置，在这里我们存放与GLFW、GLM、vulkan头文件的相同的目录中 <strong>3rdparty\Include</strong> 下，如图所示：<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/1113490-20170701161832930-369769985.png" alt="Vulkan 图像(Images)" title="Vulkan 图像(Images)" /></p>
+<p><code>Visual Studio</code>，确认<strong>$(SolutionDir)\3rdparty\Include</strong>添加到 <strong>Additional Include Directories</strong> 路径中。<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/1113490-20170701161459586-1246488184.png" alt="Vulkan 图像(Images)" title="Vulkan 图像(Images)" /></p>
+<h2 id="ftoc-heading-3" class="ftwp-heading">加载图像</h2>
+<p>包含image库的头文件：</p>
+<pre><code class="language-cpp  line-numbers">#define STB_IMAGE_IMPLEMENTATION
+#include &lt;stb_image.h&gt;
+</code></pre>
+<p>默认情况下头文件仅仅定义了函数的原型。一个代码文件需要使用<strong>STB_IMAGE_IMPLEMENTATION</strong>定义包含头文件中定义的函数体，否则会收到链接错误。</p>
+<pre><code class="language-cpp  line-numbers">void initVulkan() {
+    ...
+    createCommandPool();
+    createTextureImage();
+    createVertexBuffer();
+    ...
+}...void createTextureImage() {}
+</code></pre>
+<p>创建新的函数<strong>createTextureImage</strong>用于加载图片和提交到Vulkan图像对象中。我们也会使用命令缓冲区，所以需要在<strong>createCommandPool</strong>之后调用。</p>
+<p>在<strong>shaders</strong>目录下新增新的<strong>textures</strong>目录，用于存放贴图资源。我们将会从目录中加载名为<strong>texture.jpg</strong>的图像。这里选择 <strong>CC0 licensed image</strong> 并调整为512 x 512像素大小，但是在这里可以使用任何你期望的图片。库支持很多主流的图片文件格式，比如JPEG，PNG，BMP和GIF。<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/1113490-20170705210356190-1796129048.jpg" alt="Vulkan 图像(Images)" title="Vulkan 图像(Images)" /><br />
+使用库加载图片是非常容易的：</p>
+<pre><code class="language-cpp  line-numbers">void createTextureImage() {
+    int texWidth, texHeight, texChannels;
+    stbi_uc* pixels = stbi_load("textures/texture.jpg", &amp;texWidth, &amp;texHeight, &amp;texChannels, STBI_rgb_alpha);
+    VkDeviceSize imageSize = texWidth * texHeight * 4;    if (!pixels) {
+        throw std::runtime_error("failed to load texture image!");
+    }
+}
+</code></pre>
+<p><strong>stbi_load</strong>函数使用文件的路径和通道的数量作为参数加载图片。<strong>STBI_rgb_alpha</strong>值强制加载图片的alpha通道，即使它本身没有alpha，但是这样做对于将来加载其他的纹理的一致性非常友好。中间三个参数用于输出width, height 和实际的图片通道数量。返回的指针是像素数组的第一个元素地址。总共 <strong>texWidth * texHeight * 4</strong> 个像素值，像素在<strong>STBI_rgba_alpha</strong>的情况下逐行排列，每个像素4个字节。</p>
+<h2 id="ftoc-heading-4" class="ftwp-heading">临时缓冲区</h2>
+<p>我们现在要在host visible内存中创建一个缓冲区，以便我们可以使用<strong>vkMapMemory</strong>并将像素复制给它。在<strong>createTextureImage</strong>函数中添临时缓冲区变量。</p>
+<pre><code class="language-cpp  line-numbers">VkBuffer stagingBuffer;
+VkDeviceMemory stagingBufferMemory;
+</code></pre>
+<p>缓冲区必须对于host visible内存可见，为此我们对它进行映射，之后使用它作为传输源拷贝像素到图像对象中。</p>
+<pre><code class="language-cpp  line-numbers">createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+</code></pre>
+<p>我们可以直接从库中加载的图片中拷贝像素到缓冲区：</p>
+<pre><code class="language-cpp  line-numbers">void* data;
+vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &amp;data);
+memcpy(data, pixels, static_cast&lt;size_t&gt;(imageSize));
+vkUnmapMemory(device, stagingBufferMemory);
+</code></pre>
+<p>不要忘记清理原图像的像素数据：</p><div id="eaa_after_nth_p" class="eaa-wrapper eaa_after_nth_p eaa_desktop"><div class="eaa-ad  " style=""></div></div>
+<pre><code class="language-cpp  line-numbers">stbi_image_free(pixels);
+</code></pre>
+<h2 id="ftoc-heading-5" class="ftwp-heading">纹理图像</h2>
+<p>虽然我们可以通过设置着色器访问缓冲区中的像素值，但是在Vulkan中最好使用image对象完成该操作。图像对象可以允许我们使用二维坐标，从而更容易的快速的检索颜色。图像中的像素被成为纹素即纹理元素，我们将从此处开始使用该名称。添加以下新的类成员：</p>
+<pre><code class="language-cpp  line-numbers">VkImage textureImage;
+VkDeviceMemory textureImageMemory;
+</code></pre>
+<p>对于图像的参数通过<strong>VkImageCreateInfo</strong>结构体来描述：</p>
+<pre><code class="language-cpp  line-numbers">VkImageCreateInfo imageInfo = {};
+imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+imageInfo.imageType = VK_IMAGE_TYPE_2D;
+imageInfo.extent.width = static_cast&lt;uint32_t&gt;(texWidth);
+imageInfo.extent.height = static_cast&lt;uint32_t&gt;(texHeight);
+imageInfo.extent.depth = 1;
+imageInfo.mipLevels = 1;
+imageInfo.arrayLayers = 1;
+</code></pre>
+<p><strong>imageType</strong>字段指定图像类型，告知Vulkan采用什么样的坐标系在图像中采集纹素。它可以是1D，2D和3D图像。1D图像用于存储数组数据或者灰度图，2D图像主要用于纹理贴图，3D图像用于存储立体纹素。<strong>extent</strong>字段指定图像的尺寸，基本上每个轴上有多少纹素。这就是为什么深度必须是<strong>1</strong>而不是<strong>0</strong>。我们的纹理不会是一个数组，而现在我们不会使用mipmapping功能。</p>
+<pre><code class="language-cpp  line-numbers">imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+</code></pre>
+<p>Vulkan支持多种图像格式，但无论如何我们要在缓冲区中为纹素应用与像素一致的格式，否则拷贝操作会失败。</p>
+<pre><code class="language-cpp  line-numbers">imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+</code></pre>
+<p><strong>tiling</strong>字段可以设定两者之一：</p>
+<ul>
+<li><strong>VK_IMAGE_TILING_LINEAR</strong>: 纹素基于行主序的布局，如<strong>pixels</strong>数组</li>
+<li><strong>VK_IMAGE_TILING_OPTIMAL</strong>: 纹素基于具体的实现来定义布局，以实现最佳访问</li>
+</ul>
+<p>与图像布局不同的是，tiling模式不能在之后修改。如果需要在内存图像中直接访问纹素，必须使用<strong>VK_IMAGE_TILING_LINEAR</strong>。我们将会使用暂存缓冲区代替暂存图像，所以这部分不是很有必要。为了更有效的从shader中访问纹素，我们将会使用<strong>VK_IMAGE_TILING_OPTIMAL</strong>。</p>
+<pre><code class="language-cpp  line-numbers">imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+</code></pre>
+<p>对于图像的<strong>initialLayout</strong>字段，仅有两个可选的值：</p>
+<ul>
+<li><strong>VK_IMAGE_LAYOUT_UNDEFINED</strong>: GPU不能使用，第一个变换将丢弃纹素。</li>
+<li><strong>VK_IMAGE_LAYOUT_PREINITIALIZED</strong>: GPU不能使用，但是第一次变换将会保存纹素。</li>
+</ul>
+<p>几乎没有必要在第一次转换时候保留纹素。然而，一个例子是，如果您想将图像用作与 <strong>VK_IMAGE_TILING_LINEAR</strong> 布局相结合的暂存图像。在这种情况下，您需要将纹素数据上传到它，然后将图像转换为传输源，而不会导致丢失数据。但是，在我们的例子中，我们首先将图像转换为传输目标，然后从缓冲区对象复制纹理数据，因此我们不需要此属性，可以安全地使用 <strong>VK_IMAGE_LAYOUT_UNDEFINED</strong> 。</p>
+<pre><code class="language-cpp  line-numbers">imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+</code></pre>
+<p>这里的** usage<strong>字段与缓冲区创建过程中使用的 **usage</strong> 字段有相同的语意。图像将会被用作缓冲区拷贝的目标，所以应该设置作为传输目的地。我们还希望从着色器中访问图像对我们的mesh进行着色，因此具体的usage还要包括<strong>VK_IMAGE_USAGE_SAMPLED_BIT</strong>。</p>
+<pre><code class="language-cpp  line-numbers">imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+</code></pre>
+<p>因为图像会在一个队列簇中使用：支持图形或者传输操作。</p>
+<pre><code class="language-cpp  line-numbers">imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+imageInfo.flags = 0; // Optional
+</code></pre>
+<p><strong>samples</strong>标志位与多重采样相关。这仅仅适用于作为附件的图像，所以我们坚持一个采样数值。与稀疏图像相关的图像有一些可选的标志。稀疏图像是仅仅某些区域实际上被存储器支持的图像。例如，如果使用3D纹理进行立体地形，则可以使用此方法来避免分配内存来存储大量“空气”值。我们不会在本教程中使用，所以设置默认值<strong>0</strong>。</p>
+<pre><code class="language-cpp  line-numbers">if (vkCreateImage(device, &amp;imageInfo, nullptr, &amp;textureImage) != VK_SUCCESS) {
+    throw std::runtime_error("failed to create image!");
+}
+</code></pre>
+<p>使用<strong>vkCreateImage</strong>创建图像，这里没有任何特殊的参数设置。可能图形硬件不支持<strong>VK_FORMAT_R8G8B8A8_UNORM</strong>格式。我们应该持有一个可以替代的可以接受的列表。然而对这种特定格式的支持是非常普遍的，我们将会跳过这一步。使用不同的格式也需要繁琐的转换过程。我们会回到深度缓冲区章节，实现类似的系统。</p>
+<pre><code class="language-cpp  line-numbers">VkMemoryRequirements memRequirements;
+vkGetImageMemoryRequirements(device, textureImage, &amp;memRequirements);VkMemoryAllocateInfo allocInfo = {};
+allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+allocInfo.allocationSize = memRequirements.size;
+allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);if (vkAllocateMemory(device, &amp;allocInfo, nullptr, &amp;textureImageMemory) != VK_SUCCESS) {
+    throw std::runtime_error("failed to allocate image memory!");
+}vkBindImageMemory(device, textureImage, textureImageMemory, 0);
+</code></pre>
+<p>为图像工作分配内存与为缓冲区分配内存是类似的，使用<strong>vkGetImageMemoryRequirements</strong>代替<strong>vkGetBufferMemoryRequirements</strong>，并使用<strong>vkBindImageMemory</strong>代替<strong>vkBindBufferMemory</strong>。</p>
+<p>这个函数已经变得比较庞大臃肿了，而且需要在后面的章节中创建更多的图像，所以我们应该将图像创建抽象成一个<strong>createImage</strong>函数，就像之前为buffers缓冲区做的事情一样。创建函数并将图像对象的创建和内存分配移动过来：</p>
+<pre><code class="language-cpp  line-numbers">void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage&amp; image, VkDeviceMemory&amp; imageMemory) {
+    VkImageCreateInfo imageInfo = {};
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.extent.width = width;
+    imageInfo.extent.height = height;
+    imageInfo.extent.depth = 1;
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = 1;
+    imageInfo.format = format;
+    imageInfo.tiling = tiling;
+    imageInfo.initialLayout =VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo.usage = usage;
+    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;    if (vkCreateImage(device, &amp;imageInfo, nullptr, &amp;image) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create image!");
+    }    VkMemoryRequirements memRequirements;
+    vkGetImageMemoryRequirements(device, image, &amp;memRequirements);    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);    if (vkAllocateMemory(device, &amp;allocInfo, nullptr, &amp;imageMemory) != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate image memory!");
+    }    vkBindImageMemory(device, image, imageMemory, 0);
+}
+</code></pre>
+<p>这里使用了width, height, format, tiling mode, usage和memory properties参数，因为这些参数根据教程中创建的图像而不同。</p>
+<p><strong>createTextureImage</strong>函数现在简化为：</p><div id="eaa_after_nth_p_1" class="eaa-wrapper eaa_after_nth_p_1 eaa_desktop"><div class="eaa-ad  " style=""></div></div>
+<pre><code class="language-cpp  line-numbers">void createTextureImage() {
+    int texWidth, texHeight, texChannels;
+    stbi_uc* pixels = stbi_load("textures/texture.jpg", &amp;texWidth, &amp;texHeight, &amp;texChannels, STBI_rgb_alpha);
+    VkDeviceSize imageSize = texWidth * texHeight * 4;    if (!pixels) {
+        throw std::runtime_error("failed to load texture image!");
+    }    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);    void* data;
+    vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &amp;data);
+        memcpy(data, pixels, static_cast&lt;size_t&gt;(imageSize));
+    vkUnmapMemory(device, stagingBufferMemory);    stbi_image_free(pixels);    createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+}
+</code></pre>
+<h2 id="ftoc-heading-6" class="ftwp-heading">布局转换</h2>
+<p>我们将要编写的函数会涉及到记录和执行命令缓冲区，所以现在适当的移除一些逻辑到辅助函数中去：</p>
+<pre><code class="language-cpp  line-numbers">VkCommandBuffer beginSingleTimeCommands() {
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = commandPool;
+    allocInfo.commandBufferCount = 1;    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(device, &amp;allocInfo, &amp;commandBuffer);    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;    vkBeginCommandBuffer(commandBuffer, &amp;beginInfo);    return commandBuffer;
+}void endSingleTimeCommands(VkCommandBuffer commandBuffer) {
+    vkEndCommandBuffer(commandBuffer);    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &amp;commandBuffer;    vkQueueSubmit(graphicsQueue, 1, &amp;submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(graphicsQueue);    vkFreeCommandBuffers(device, commandPool, 1, &amp;commandBuffer);
+}
+</code></pre>
+<p>函数中的代码是基于<strong>copyBuffer</strong>中已经存在的代码。现在可以简化函数如下：</p>
+<pre><code class="language-cpp  line-numbers">void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands();    VkBufferCopy copyRegion = {};
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, ©Region);    endSingleTimeCommands(commandBuffer);
+}
+</code></pre>
+<p>如果仍然继续使用缓冲区，我们可以编写一个函数记录和执行<strong>vkCmdCopyBuffeToImage</strong>来完成这个工作，但首先命令要求图像在正确的布局中。创建一个新的函数处理布局变换：</p>
+<pre><code class="language-cpp  line-numbers">void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands();    endSingleTimeCommands(commandBuffer);
+}
+</code></pre>
+<p>通常主流的做法用于处理图像变换是使用 image memory barrier。一个管线的屏障通常用于访问资源的时候进行同步，也类似缓冲区在读操作之前完成写入操作，当然也可以用于图像布局的变换以及在使用<strong>VK_SHARING_MODE_EXCLUSIVE</strong>模式情况下，传输队列簇宿主的变换。缓冲区有一个等价的 buffer memory barrier。</p>
+<pre><code class="language-cpp  line-numbers">VkImageMemoryBarrier barrier = {};
+barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+barrier.oldLayout = oldLayout;
+barrier.newLayout = newLayout;
+</code></pre>
+<p>前两个参数指定布局变换。可以使用<strong>VK_IMAGE_LAYOUT_UNDEFINED</strong>作为<strong>oldLayout</strong>，如果不关心已经存在与图像中的内容。</p>
+<pre><code class="language-cpp  line-numbers">barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+</code></pre>
+<p>如果针对传输队列簇的宿主使用屏障，这两个参数需要设置队列簇的索引。如果不关心，则必须设置<strong>VK_QUEUE_FAMILY_IGNORED</strong>(不是默认值)。</p>
+<pre><code class="language-cpp  line-numbers">barrier.image = image;
+barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+barrier.subresourceRange.baseMipLevel = 0;
+barrier.subresourceRange.levelCount = 1;
+barrier.subresourceRange.baseArrayLayer = 0;
+barrier.subresourceRange.layerCount = 1;
+</code></pre>
+<p><strong>image</strong>和<strong>subresourceRange</strong>指定受到影响的图像和图像的特定区域。我们的图像不是数组，也没有使用mipmapping levels，所以只指定一级，并且一个层。</p>
+<pre><code class="language-cpp  line-numbers">barrier.srcAccessMask = 0; // TODO
+barrier.dstAccessMask = 0; // TODO
+</code></pre>
+<p>屏障主要用于同步目的，所以必须在应用屏障前指定哪一种操作类型及涉及到的资源，同时要指定哪一种操作及资源必须等待屏障。我们必须这样做尽管我们使用<strong>vkQueueWaitIdle</strong>人为的控制同步。正确的值取决于旧的和新的布局，所以我们一旦我们知道了要使用的变换，就可以回到布局部分。</p>
+<pre><code class="language-cpp  line-numbers">vkCmdPipelineBarrier(
+    commandBuffer,
+    0 /* TODO */, 0 /* TODO */,
+    0,
+    0, nullptr,
+    0, nullptr,
+    1, &amp;barrier
+);
+</code></pre>
+<p>所有类型的管线屏障都使用同样的函数提交。命令缓冲区参数后的第一个参数指定管线的哪个阶段，应用屏障同步之前要执行的前置操作。第二个参数指定操作将在屏障上等待的管线阶段。在屏障之前和之后允许指定管线阶段取决于在屏障之前和之后如何使用资源。允许的值列在规范的 <strong>table</strong> 表格中。比如，要在屏障之后从 uniform 中读取，您将指定使用<strong>VK_ACCESS_UNIFORM_READ_BIT</strong>以及初始着色器从 uniform 中读取作为管线阶段，例如 <strong>VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT</strong>。为这种类型的指定非着色器管线阶段是没有意义的，并且当指定和使用类型不匹配的管线阶段时候，validation layer 将会提示警告信息。</p>
+<p>第三个参数可以设置为<strong>0</strong>或者<strong>VK_DEPENDENCY_BY_REGION_BIT</strong>。后者将屏障变换为每个区域的状态。这意味着，例如，允许已经写完资源的区域开始读的操作，更加细的粒度。</p>
+<p>最后三个参数引用管线屏障的数组，有三种类型，第一种 memory barriers，第二种, buffer memory barriers, 和 image memory barriers。第一种就是我们使用的。需要注意的是我们没有使用<strong>VkFormat</strong>参数，但是我们会在深度缓冲区章节中使用它做一些特殊的变换。</p>
+<h2 id="ftoc-heading-7" class="ftwp-heading">缓冲区拷贝到图像</h2>
+<p>现在回到<strong>createTextureImage</strong>函数，我们编写新的辅助函数<strong>copyBufferToImage</strong>：</p>
+<pre><code class="language-cpp  line-numbers">void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands();    endSingleTimeCommands(commandBuffer);
+}
+</code></pre>
+<p>就像缓冲区拷贝一样，我们需要指定拷贝具体哪一部分到图像的区域。这部分通过<strong>VkBufferImageCopy</strong>结构体描述：</p>
+<pre><code class="language-cpp  line-numbers">VkBufferImageCopy region = {};
+region.bufferOffset = 0;
+region.bufferRowLength = 0;
+region.bufferImageHeight = 0;region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+region.imageSubresource.mipLevel = 0;
+region.imageSubresource.baseArrayLayer = 0;
+region.imageSubresource.layerCount = 1;region.imageOffset = {0, 0, 0};
+region.imageExtent = {
+    width,
+    height,
+    1
+};
+</code></pre>
+<p>大部分的字段已经字面意思很明了了。<strong>bufferOffset</strong>字段指定缓冲区中的byte偏移量，代表像素值起始的位置。<strong>bufferRowLength</strong>和<strong>bufferImageHeight</strong>字段指定像素在内存中的布局。比如可能在图像的行与行之间填充一些空字节。为两者指定<strong>0</strong>表示像素紧密排列，这也是我们使用的设置。<strong>imageSubresource</strong>，<strong>imageOffset</strong> 和 <strong>imageExtent</strong>字段指定我们将要拷贝图像的哪一部分像素。</p>
+<p>缓冲区拷贝到图像的操作将会使用<strong>vkCmdCopyBufferToImage</strong>函数到队列中：</p>
+<pre><code class="language-cpp  line-numbers">vkCmdCopyBufferToImage(
+    commandBuffer,
+    buffer,
+    image,
+    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+    1,
+    ®ion
+);
+</code></pre>
+<p>四个参数指定当前图像使用的布局。我们假设图像为了像素拷贝已经变换为optimal最佳的布局。现在我们仅拷贝像素快到一个完整的图像中，但是也可以指定<strong>VkBufferImageCopy</strong>数组，以便在一个操作中执行从缓冲区到图像的不同的拷贝操作。</p><div id="eaa_after_nth_p_2" class="eaa-wrapper eaa_after_nth_p_2 eaa_desktop"><div class="eaa-ad  " style=""></div></div>
+<h2 id="ftoc-heading-8" class="ftwp-heading">准备纹理图像</h2>
+<p>我们已经完成了使用贴图图像的所有工作，现在回到<strong>createTextureImage</strong>函数。最后一个事情是创建贴图图像texture image。下一步copy暂存缓冲区到贴图图像。这需要涉及两个步骤：</p>
+<ul>
+<li>变换贴图图像到 <strong>VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL</strong></li>
+<li>执行缓冲区到图像的拷贝操作</li>
+</ul>
+<p>这部分比较容易，如函数中所示：</p>
+<pre><code class="language-cpp  line-numbers">transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+copyBufferToImage(stagingBuffer, textureImage, static_cast&lt;uint32_t&gt;(texWidth), static_cast&lt;uint32_t&gt;(texHeight));
+</code></pre>
+<p>图像是使用 <strong>VK_IMAGE_LAYOUT_UNDEFINED</strong> 布局创建的，因此在转换 <strong>textureImage</strong> 时候应该指定wield旧布局。请记住，我们可以这样做，因为我们在执行复制操作之前不关心它的内容。</p>
+<p>在shader着色器中开始从贴图图像的采样，我们需要最后一个变换来准备着色器访问：</p>
+<pre><code class="language-cpp  line-numbers">transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+</code></pre>
+<h2 id="ftoc-heading-9" class="ftwp-heading">预屏障</h2>
+<p>如果应用程序开启validation layers运行，你将会看到它提示 <strong>transitionImageLayout</strong> 中的访问掩码和管线阶段无效。我们仍然需要根据变换中的布局设置它们。</p>
+<p>有两种变换需要处理：</p>
+<ul>
+<li>Undefined → transfer destination: 传输写入操作不需要等待任何事情</li>
+<li>Transfer destination→ shader reading: 着色器读取操作应该等待传输写入，特别是 fragment shader进行读取，因为这是我们要使用纹理的地方。</li>
+</ul>
+<p>这些规则使用以下访问掩码和管线阶段进行指定：</p>
+<pre><code class="language-cpp  line-numbers">VkPipelineStageFlags sourceStage;
+VkPipelineStageFlags destinationStage;if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &amp;&amp; newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+    barrier.srcAccessMask = 0;
+    barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;    sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+} else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &amp;&amp; newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;    sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+} else {
+    throw std::invalid_argument("unsupported layout transition!");
+}vkCmdPipelineBarrier(
+    commandBuffer,
+    sourceStage, destinationStage,
+    0,
+    0, nullptr,
+    0, nullptr,
+    1, &amp;barrier
+);
+</code></pre>
+<p>如上所示，传输写入必须在管线传输阶段进行。由于写入不必等待任何事情，您可以指定一个空的访问掩码和最早的可能的管线阶段 <strong>VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT</strong> 作为预屏障操作。</p>
+<p>图像将被写入相同的流水线阶段，随后由片段着色器读取，这就是为什么我们在片段着色器管线阶段中指定着色器读取访问的原因。</p>
+<p>如果将来我们需要做更多的转换，那么我们将扩展这个功能。应用程序现在应该可以成功运行，尽管当前没有任何可视化的变化。</p>
+<p>需要注意的是，命令缓冲区提交会在开始时导致隐式 <strong>VK_ACCESS_HOST_WRITE_BIT</strong> 同步。由于 <strong>transitionImageLayout</strong> 函数只使用单个命令执行命令缓冲区，因此如果在布局转换中需要 <strong>VK_ACCESS_HOST_WRITE_BIT</strong> 依赖关系，则可以使用此隐式同步将 <strong>srcAccessMask</strong> 设置为 <strong>0</strong> 。如果你想要明确的话，这取决于你，但我个人并不是依赖这些OpenGL类似的 “隐式” 操作的粉丝。</p>
+<p>实际上也有一种通用的图像布局类型支持所有的操作，<strong>VK_IMAGE_LAYOUT_GENERAL</strong>。问题是，它没有为任何操作提供最佳的性能表现。在某些特殊的情况下需要使用，例如使用图像作为输入和输出，或者在离开预初始化布局后读取图像。</p>
+<p>到目前为止，所有用于提交命令的辅助函数已经被设置为通过等待队列变为空闲来同步执行。对于实际应用，建议在单个命令缓冲区中组合这些操作，并异步方式执行它们获得更高的吞吐量，尤其在<strong>createTextureImage</strong>函数中的转换和拷贝操作。尝试通过创建一个<strong>setupCommandBuffer</strong>辅助函数记录命令，并添加一个<strong>flushSetupCommands</strong>函数来执行所以已经目录的命令。最好在纹理贴图映射工作后进行，以检查纹理资源是否仍然正确设置。</p>
+<h2 id="ftoc-heading-10" class="ftwp-heading">清理缓冲区</h2>
+<p>在<strong>createTextureImage</strong>函数最后清理暂存缓冲区和分配的内存：</p>
+<pre><code class="language-cpp  line-numbers">transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);    vkDestroyBuffer(device, stagingBuffer, nullptr);
+    vkFreeMemory(device, stagingBufferMemory, nullptr);
+}
+</code></pre>
+<p>程序中使用的贴图图像直到退出的时候在清理：</p>
+<pre><code class="language-cpp  line-numbers">void cleanup() {
+    cleanupSwapChain();    vkDestroyImage(device, textureImage, nullptr);
+    vkFreeMemory(device, textureImageMemory, nullptr);    ...
+}
+</code></pre>
+<p>现在图像包含了贴图，但是图形管线需要一个途径访问它。我们会在下一章讨论。</p>
+</p></div>		</article>
+		<div class="asb aub-post aub-post-02">
+						            <div class="post-actions">
+            	<a href="javascript:;" etap="like" class="post-like action action-like" data-pid="4502"><i class="fa fa-thumbs-o-up"></i>赞(<span>3</span>)</a>            	            	            </div>
+        				
+					<div class="action-share"></div>
+		
+		<div class="article-tags"></div>
+		
+		
+		<div class="relates relates-thumb"><div class="title"><h3>猜你喜欢</h3></div><ul><li><a href="support-vulkan-game.html"><img data-src="image/img.geek-docs.com/vulkan/201911161129.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的游戏|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li><li><a href="support-vulkan-gpu.html"><img data-src="image/img.geek-docs.com/vulkan/201911112317.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的GPU|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="vulkan-basic-types.html"><img data-src="image/img.geek-docs.com/vulkan/201911100840.jpg?x-oss-process=style/4-3-thumb" alt="Vulkan 基本类型|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li><a href="vulkan-visual-studio-environment-configuration.html"><img data-src="image/img.geek-docs.com/vulkan/201910191450.png?x-oss-process=style/4-3-thumb" alt="Vulkan Visual Studio环境配置|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li></ul></div>				<div class="title" id="comments">
+	<h3>评论 <b>2</b></h3>
+</div>
+<div id="respond" class="no_webshot">
+		
+	<form action="https://geek-docs.com/wp-comments-post.php" method="post" id="commentform">
+		<div class="comt">
+			<div class="comt-title">
+				<img alt='' data-src='https://secure.gravatar.com/avatar/?s=50&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/?s=100&#038;d=mm&#038;r=g 2x' class='avatar avatar-50 photo avatar-default' height='50' width='50' />				<p><a rel="nofollow" id="cancel-comment-reply-link" href="javascript:;">取消</a></p>
+			</div>
+			<div class="comt-box">
+				<textarea placeholder="你的评论可以一针见血" class="input-block-level comt-area" name="comment" id="comment" cols="100%" rows="3" tabindex="1" onkeydown="if(event.ctrlKey&amp;&amp;event.keyCode==13){document.getElementById('submit').click();return false};"></textarea>
+				<div class="comt-ctrl">
+					<div class="comt-tips"><input type='hidden' name='comment_post_ID' value='4502' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+<label for="comment_mail_notify" class="checkbox inline hide" style="padding-top:0"><input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" value="comment_mail_notify" checked="checked"/>有人回复时邮件通知我</label></div>
+					<button type="submit" name="submit" id="submit" tabindex="5">提交评论</button>
+					<!-- <span data-type="comment-insert-smilie" class="muted comt-smilie"><i class="icon-thumbs-up icon12"></i> 表情</span> -->
+				</div>
+			</div>												<div class="comt-comterinfo" id="comment-author-info" >
+						<ul>
+							<li class="form-inline"><label class="hide" for="author">昵称</label><input class="ipt" type="text" name="author" id="author" value="" tabindex="2" placeholder="昵称"><span class="text-muted">昵称 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="email">邮箱</label><input class="ipt" type="text" name="email" id="email" value="" tabindex="3" placeholder="邮箱"><span class="text-muted">邮箱 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="url">网址</label><input class="ipt" type="text" name="url" id="url" value="" tabindex="4" placeholder="网址"><span class="text-muted">网址</span></li>
+						</ul>
+					</div>
+									</div>	</form>
+	</div>
+<div id="postcomments">
+	<ol class="commentlist">
+		<li class="comment even thread-even depth-1" id="comment-294"><span class="comt-f">#1</span><div class="comt-avatar"><img alt='' data-src='https://secure.gravatar.com/avatar/ce6df58607f7045d29de6c9b414b72d7?s=50&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/ce6df58607f7045d29de6c9b414b72d7?s=100&#038;d=mm&#038;r=g 2x' class='avatar avatar-50 photo' height='50' width='50' /></div><div class="comt-main" id="div-comment-294"><p>能不能提供整个例子的源代码</p>
+<div class="comt-meta"><span class="comt-author">夜小深</span>2年前 (2020-03-16)<a rel='nofollow' class='comment-reply-link' href="javascript:;" onclick='return addComment.moveForm( "div-comment-294", "294", "respond", "4502" )' aria-label='回复给夜小深'>回复</a></div></div><ul class="children">
+<li class="comment odd alt depth-2" id="comment-2693"><div class="comt-avatar"><img alt='' data-src='https://secure.gravatar.com/avatar/f5ee80c6f7c17b5eee81cb4713942576?s=50&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/f5ee80c6f7c17b5eee81cb4713942576?s=100&#038;d=mm&#038;r=g 2x' class='avatar avatar-50 photo' height='50' width='50' /></div><div class="comt-main" id="div-comment-2693"><p><a href="https://vulkan-tutorial.com/Introduction" rel="nofollow">https://vulkan-tutorial.com/Introduction</a></p>
+<div class="comt-meta"><span class="comt-author">一名程序员</span>11个月前 (08-17)</div></div></li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+	</ol>
+	<div class="pagenav">
+			</div>
+</div>
+	</div>
+	</div></div>
+    <div class="tblside">
+    <div class="tblside-roll">
+		<h3>Vulkan 教程</h3><ul><li><a href="index.html">Vulkan 教程</a></li><li><a href="what-is-vulkan.html">什么是 Vulkan</a></li><li><a href="vulkan-development-environment-built-on-windows.html">Vulkan 开发环境搭建之Windows</a></li><li><a href="vulkan-understand-instance.html">Vulkan 创建Vulkan实例</a></li><li><a href="vulkan-physical-devices-and-queue-clusters.html">Vulkan 物理设备与队列</a></li><li><a href="vulkan-application-framework-prototype.html">Vulkan 应用程序框架原型</a></li><li><a href="understand-validation-layers.html">Vulkan 验证层</a></li><li><a href="vulkan-logical-devices-and-queues.html">Vulkan 逻辑设备与队列</a></li><li><a href="vulkan-exchange-of-chain.html">Vulkan 交换链</a></li><li><a href="vulkan-window-surface.html">Vulkan Window Surface</a></li><li><a href="vulkan-graphic-pipeline.html">Vulkan 图形管线</a></li><li><a href="vulkan-images-and-views.html">Vulkan 图像与视图</a></li><li><a href="vulkan-shader-modules.html">Vulkan 着色器模块</a></li><li><a href="vulkan-fixed-functions.html">Vulkan 固有功能</a></li><li><a href="vulkan-framebuffers.html">Vulkan 帧缓冲区</a></li><li><a href="vulkan-integration-pipeline.html">Vulkan 集成管线</a></li><li><a href="vulkan-render-passes.html">Vulkan 渲染通道</a></li><li><a href="vulkan-command-buffers.html">Vulkan 命令缓冲区</a></li><li><a href="vulkan-rendering-and-presentation.html">Vulkan 渲染和显示</a></li><li><a href="vulkan-reconstructed-commutative-chain.html">Vulkan 重构交换链</a></li><li><a href="vertex-input-description.html">Vulkan 顶点输入</a></li><li><a href="vertex-buffer-creation.html">Vulkan 创建顶点缓冲区</a></li><li><a href="vulkan-staging-buffer.html">Vulkan 临时缓冲区</a></li><li><a href="vulkan-index-buffer.html">Vulkan 索引缓冲区</a></li><li><a href="vulkan-descriptor-layout-and-buffer.html">Vulkan 描述符布局和缓冲区</a></li><li><a href="vulkan-descriptor-pool-and-sets.html">Vulkan 描述符池和集合</a></li><li class="active"><a href="vulkan-images.html">Vulkan 图像(Images)</a></li><li><a href="vulkan-image-view-and-sampler.html">Vulkan 图像视图和采样器</a></li><li><a href="combined-image-sampler.html">Vulkan 组合图像取样器</a></li><li><a href="vulkan-depth-buffering.html">Vulkan 深度缓冲区</a></li><li><a href="loading-models.html">Vulkan 加载模型</a></li><li><a href="vulkan-generating-mipmaps.html">Vulkan 生成贴图(mipmap)</a></li><li><a href="vulkan-multisampling.html">Vulkan 多重采样(Multisampling)</a></li><li><a href="vulkan-and-opengl.html">Vulkan和OpenGL区别</a></li><li><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li><li><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li></ul>    </div>
+	  		<div class="widget widget_recent_entries" id="recent-posts-3">		<h3>最新文章</h3>	
+					
+		</div></div>
+<div class="tbrside">
+<nav>
+<div id="geekdocs-fixed"></div>
+	
+</nav>
+</div>
+</section><footer class="footer">
+	<div class="container">
+							</div>
+</footer><div class="rollbar rollbar-rb"><ul><li class="rollbar-totop"><a href="javascript:(jsui.scrollTo());"><i class="fa fa-angle-up"></i><span>回顶</span></a><h6>回顶部<i></i></h6></li></ul></div>
+<script>
+window.jsui={
+	www: 'https://geek-docs.com',
+	uri: 'https://geek-docs.com/wp-content/themes/dux',
+	ver: '6.0',
+	roll: ["1","2","3"],
+	ajaxpager: '5',
+	url_rp: 'https://geek-docs.com/'
+};
+</script>
+        <!--[if lte IE 9]>
+        <script>
+            'use strict';
+            (function($) {
+                $(document).ready(function() {
+                    $('#ftwp-container').addClass('ftwp-ie9');
+                });
+            })(jQuery);
+        </script>
+        <![endif]-->
+		<link rel='stylesheet' id='prism-theme-style-css'  href='css/prism-hopscotch.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-toolbar-css'  href='css/prism-toolbar.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-line-numbers-css'  href='css/prism-line-numbers.min.css?ver=1.15.0' type='text/css' media='all' />
+<script type='text/javascript' src='js/jquery.min.js?ver=1.12.4'></script>
+<script type='text/javascript' src='js/katex.min.js?ver=0.10.0-beta'></script>
+<script type='text/javascript' src='js/bootstrap.min.js?ver=6.0'></script>
+<script type='text/javascript' src='js/loader.js?ver=6.0'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var q2w3_sidebar_options = [{"sidebar":"q2w3-default-sidebar","margin_top":10,"stop_id":"","screen_max_width":0,"screen_max_height":0,"width_inherit":false,"refresh_interval":1500,"window_load_hook":false,"disable_mo_api":false,"widgets":["geekdocs-fixed"]}];
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/q2w3-fixed-widget.min.js?ver=5.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var fixedtocOption = {"showAdminbar":"","inOutEffect":"zoom","isNestedList":"1","isColExpList":"1","showColExpIcon":"1","isAccordionList":"","isQuickMin":"1","isEscMin":"1","isEnterMax":"1","fixedMenu":"","scrollOffset":"10","fixedOffsetX":"10","fixedOffsetY":"0","fixedPosition":"middle-left","contentsFixedHeight":"","inPost":"","contentsFloatInPost":"left","contentsWidthInPost":"0","contentsHeightInPost":"","contentsColexpInitMobile":"1","inWidget":"","fixedWidget":"","triggerBorder":"medium","contentsBorder":"thin","triggerSize":"50","isClickableHeader":"","debug":"","postContentSelector":"#ftwp-postcontent","mobileMaxWidth":"768","disappearPoint":"content-bottom"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/ftoc.min.js?ver=3.1.24'></script>
+<script type='text/javascript' src='js/hoverIntent.min.js?ver=1.8.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var megamenu = {"timeout":"300","interval":"100"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/maxmegamenu.js?ver=2.9.7'></script>
+<script type='text/javascript' src='js/wp-embed.min.js?ver=4.9.20'></script>
+<script type='text/javascript' src='js/prism-core.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-autoloader.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-toolbar.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-line-numbers.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-show-language.min.js?ver=1.15.0'></script>
+		<script type="text/javascript">
+            (function ($) {
+                $(document).ready(function () {
+                    $(".katex.math.inline").each(function () {
+                        var parent = $(this).parent()[0];
+                        if (parent.localName !== "code") {
+                            var texTxt = $(this).text();
+                            var el = $(this).get(0);
+                            try {
+                                katex.render(texTxt, el);
+                            } catch (err) {
+                                $(this).html("<span class=\'err\'>" + err);
+                            }
+                        } else {
+                            $(this).parent().text($(this).parent().text());
+                        }
+                    });
+                    $(".katex.math.multi-line").each(function () {
+                        var texTxt = $(this).text();
+                        var el = $(this).get(0);
+                        try {
+                            katex.render(texTxt, el, {displayMode: true})
+                        } catch (err) {
+                            $(this).html("<span class=\'err\'>" + err)
+                        }
+                    });
+                })
+            })(jQuery);
+		</script>
+				<script type="text/javascript">
+			Prism.plugins.autoloader.languages_path = "http://cdn.bootcss.com/prism/1.15.0/components/"
+		</script>
+		</body></html>

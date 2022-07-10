@@ -1,0 +1,440 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=11,IE=10,IE=9,IE=8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-title" content="极客教程">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+<title>Vulkan 多重采样(Multisampling)|极客教程</title><link rel='stylesheet' id='Katex-css'  href='css/katex.min.css?ver=0.10.0-beta' type='text/css' media='all' />
+<link rel='stylesheet' id='megamenu-css'   href='css/style.css?ver=e86352' type='text/css' media='all' />
+<link rel='stylesheet' id='dashicons-css'  href='css/dashicons.min.css?ver=4.9.20' type='text/css' media='all' />
+<link rel='stylesheet' id='_bootstrap-css'  href='css/bootstrap.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_fontawesome-css'  href='css/font-awesome.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_main-css'  href='css/main.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='fixedtoc-style-css'  href='css/ftoc.min.css?ver=3.1.24' type='text/css' media='all' />
+<style id='fixedtoc-style-inline-css' type='text/css'>
+#ftwp-container.ftwp-wrap #ftwp-contents { width: 255px; height: auto; } #ftwp-container.ftwp-wrap #ftwp-trigger { width: 50px; height: 50px; font-size: 30px; } #ftwp-container #ftwp-trigger.ftwp-border-medium { font-size: 29px; } #ftwp-container.ftwp-wrap #ftwp-header { font-size: 16px; font-family: inherit; } #ftwp-container.ftwp-wrap #ftwp-header-title { font-weight: bold; } #ftwp-container.ftwp-wrap #ftwp-list { font-size: 14px; font-family: inherit; } #ftwp-container #ftwp-list.ftwp-liststyle-decimal .ftwp-anchor::before { font-size: 14px; } #ftwp-container #ftwp-list.ftwp-strong-first>.ftwp-item>.ftwp-anchor .ftwp-text { font-size: 15.4px; } #ftwp-container #ftwp-list.ftwp-strong-first.ftwp-liststyle-decimal>.ftwp-item>.ftwp-anchor::before { font-size: 15.4px; } #ftwp-container.ftwp-wrap #ftwp-trigger { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-trigger { border-color: rgba(51,51,51,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents { border-color: rgba(51,51,51,0.95); } #ftwp-container.ftwp-wrap #ftwp-header { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents:hover #ftwp-header { background: #f3f3f3; } #ftwp-container.ftwp-wrap #ftwp-list { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents:hover #ftwp-list { background: #f3f3f3; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-anchor:hover { color: #00A368; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-anchor:focus, #ftwp-container.ftwp-wrap #ftwp-list .ftwp-active, #ftwp-container.ftwp-wrap #ftwp-list .ftwp-active:hover { color: #fff; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-text::before { background: rgba(9,168,0,0.95); } .ftwp-heading-target::before { background: rgba(9,168,0,0.95); }
+</style>        <style>
+            .eaa-clean {
+                padding: 0 !important;
+                border: none !important;
+            }            .eaa-ad.alignleft {
+                margin-right: 10px;
+            }            .eaa-ad.alignright {
+                margin-left: 10px;
+            }
+            .eaa-ad.debug{
+                background:peachpuff;
+                border:solid 2px #FF0000;
+                box-sizing: border-box;
+            }        </style>		
+<link rel='prev' title='Pandas 统计函数' href='https://geek-docs.com/pandas/pandas-tutorials/pandas-statistical-function.html' />
+<link rel='next' title='Pandas 窗口函数' href='https://geek-docs.com/pandas/pandas-tutorials/pandas-window-function.html' />
+<link rel="canonical" href="vulkan-multisampling.html"/><meta name="keywords" content="Vulkan 多重采样(Multisampling),Vulkan教程,Vulkan">
+<meta name="description" content="Vulkan 多重采样(Multisampling)，我们的程序现在加载了多层LOD的纹理，它修复了对象远离观察者时的锯齿问题。图像显得更加平滑，但是仔细观察，你会发现在绘制的几何图形的边缘上有锯齿状的图案。这在我们早期的一个程序中尤其明显，当我们渲染一个四边形：   这种不受欢迎的效果被称为“锯齿”，它是由于可供渲染的像素数量不足导致的结果。由于没有无限分辨率的显示器，总能看到一些锯齿。有很多方">
+<style>.container{max-width:1780px}a:hover, .site-navbar li:hover > a, .site-navbar li.active a:hover, .site-navbar a:hover, .search-on .site-navbar li.navto-search a, .topbar a:hover, .site-nav li.current-menu-item > a, .site-nav li.current-menu-parent > a, .site-search-form a:hover, .branding-primary .btn:hover, .title .more a:hover, .excerpt h2 a:hover, .excerpt .meta a:hover, .excerpt-minic h2 a:hover, .excerpt-minic .meta a:hover, .article-content .wp-caption:hover .wp-caption-text, .article-content a, .article-nav a:hover, .relates a:hover, .widget_links li a:hover, .widget_categories li a:hover, .widget_ui_comments strong, .widget_ui_posts li a:hover .text, .widget_ui_posts .nopic .text:hover , .widget_meta ul a:hover, .tagcloud a:hover, .textwidget a, .textwidget a:hover, .sign h3, #navs .item li a, .url, .url:hover, .excerpt h2 a:hover span, .widget_ui_posts a:hover .text span, .widget-navcontent .item-01 li a:hover span, .excerpt-minic h2 a:hover span, .relates a:hover span{color: #09a800;}.btn-primary, .label-primary, .branding-primary, .post-copyright:hover, .article-tags a, .pagination ul > .active > a, .pagination ul > .active > span, .pagenav .current, .widget_ui_tags .items a:hover, .sign .close-link, .pagemenu li.active a, .pageheader, .resetpasssteps li.active, #navs h2, #navs nav, .btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary, .tag-clouds a:hover{background-color: #09a800;}.btn-primary, .search-input:focus, #bdcs .bdcs-search-form-input:focus, #submit, .plinks ul li a:hover,.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary{border-color: #09a800;}.search-btn, .label-primary, #bdcs .bdcs-search-form-submit, #submit, .excerpt .cat{background-color: #09a800;}.excerpt .cat i{border-left-color:#09a800;}@media (max-width: 720px) {.site-navbar li.active a, .site-navbar li.active a:hover, .m-nav-show .m-icon-nav{color: #09a800;}}@media (max-width: 480px) {.pagination ul > li.next-page a{background-color:#09a800;}}.post-actions .action.action-like,.pagemenu li.current-menu-item > a{background-color: #09a800;}.catleader h1{border-left-color: #09a800;}.loop-product-filters ul .current-cat>a{color: #09a800;}.tblside-roll h3{background-color:#09a800 !important;}.tblside-roll li.active a{color:#09a800 !important;border-left-color:#09a800 !important;}.single .content, .category .content{margin-right: 300px !important;margin-left: 300px !important;}
+.tblside{position: relative;float: left;width: 300px;margin-left: -100%;overflow:hidden;}
+.tblside-roll{margin-bottom: 15px;}
+.tblside-ads{margin-bottom: 15px;}
+.tblside-ads h3{margin:0px 0px 15px 0px;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tblside-roll li{margin-bottom: 0;}
+.tblside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:break-word;}
+.tblside-roll li.cat-item{margin-left: 0;}
+.tblside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tblside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+.tbrside{position: relative;float: right;width: 300px;margin-left: -100%;overflow:hidden;}
+.tbrside-roll{margin-bottom: 15px;}
+.tbrside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tbrside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tbrside-roll li{margin-bottom: 0;}
+.tbrside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.tbrside-roll li.cat-item{margin-left: 0;}
+.tbrside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tbrside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+@media (max-width:1100px){
+	.single .content, .category .content{margin-left: 0 !important;margin-right: 0 !important;}
+	.tblside{display: none !important;}
+	.tbrside{display: none !important;}
+}</style><style type="text/css">/** Mega Menu CSS: fs **/</style>
+<link rel="shortcut icon" href="image/favicon.ico">
+<!--[if lt IE 9]><script src="https://geek-docs.com/wp-content/themes/dux/js/libs/html5.min.js"></script><![endif]-->
+</head>
+<body class="post-template-default single single-post postid-6267 single-format-standard m-excerpt-cat topbar-off comment-open site-layout-3 text-justify-on mega-menu-nav has-ftoc">
+<header class="header">
+	<div class="container">
+		<div class="logo"><a href="https://geek-docs.com/" title="极客教程 - 以工匠精神打磨精品教程"><img src="image/static/logo.png" alt="极客教程 - 以工匠精神打磨精品教程">极客教程</a></div>				<ul class="site-nav site-navbar">
+			<div id="mega-menu-wrap-nav" class="mega-menu-wrap"><div class="mega-menu-toggle"><div class="mega-toggle-blocks-left"></div><div class="mega-toggle-blocks-center"></div><div class="mega-toggle-blocks-right"><div class='mega-toggle-block mega-menu-toggle-animated-block mega-toggle-block-0' id='mega-toggle-block-0'><button aria-label="Toggle Menu" class="mega-toggle-animated mega-toggle-animated-slider" type="button" aria-expanded="false">
+                  <span class="mega-toggle-animated-box">
+                    <span class="mega-toggle-animated-inner"></span>
+                  </span>
+                </button></div></div></div><ul id="mega-menu-nav" class="mega-menu max-mega-menu mega-menu-horizontal mega-no-js" data-event="hover" data-effect="disabled" data-effect-speed="200" data-effect-mobile="disabled" data-effect-speed-mobile="0" data-mobile-force-width="false" data-second-click="go" data-document-click="collapse" data-vertical-behaviour="standard" data-breakpoint="768" data-unbind="true" data-mobile-state="collapse_all" data-hover-intent-timeout="300" data-hover-intent-interval="100"><li class='mega-menu-item mega-menu-item-type-custom mega-menu-item-object-custom mega-menu-item-has-children mega-align-bottom-left mega-menu-flyout mega-menu-item-18090' id='mega-menu-item-18090'><a class="mega-menu-link" aria-haspopup="true" aria-expanded="false" tabindex="0">基础编程<span class="mega-indicator"></span></a>						<i class="fa fa-bars m-icon-nav"></i>
+			</div>
+</header>
+<div class="site-search">
+	<div class="container">
+		<form method="get" class="site-search-form" action="https://geek-docs.com/" ><input class="search-input" name="s" type="text" placeholder="输入关键字" value=""><button class="search-btn" type="submit"><i class="fa fa-search"></i></button></form>	</div>
+</div>	<div class="breadcrumbs">
+		<div class="container">当前位置：<a href="/">极客教程</a> <small>></small> <a href="/">Vulkan</a> <small>></small> <a href="">Vulkan 教程</a> <small>></small> Vulkan 多重采样(Multisampling)</div>
+	</div>
+<section class="container">
+	<div class="content-wrap">
+	<div class="content">
+				<header class="article-header">
+			<h1 class="article-title"><a href="vulkan-multisampling.html">Vulkan 多重采样(Multisampling)</a></h1>
+		</header>
+				
+				<nav class="article-nav">
+			<div class="asb aub-post aub-post-01">
+
+</div>			<span class="article-nav-prev">上一篇 <a href="https://geek-docs.com/pandas/pandas-tutorials/pandas-statistical-function.html" rel="prev">Pandas 统计函数</a></span>
+			<span class="article-nav-next">下一篇 <a href="https://geek-docs.com/pandas/pandas-tutorials/pandas-window-function.html" rel="next">Pandas 窗口函数</a></span>
+		</nav>
+				
+		<article class="article-content">
+			<div id="ftwp-container" class="ftwp-wrap ftwp-hidden-state ftwp-minimize ftwp-middle-left"><button type="button" id="ftwp-trigger" class="ftwp-shape-round ftwp-border-medium" title="单击以最大化目录"><span class="ftwp-trigger-icon ftwp-icon-menu"></span></button><nav id="ftwp-contents" class="ftwp-shape-round ftwp-border-thin"><header id="ftwp-header"><span id="ftwp-header-control" class="ftwp-icon-menu"></span><button type="button" id="ftwp-header-minimize" class="ftwp-icon-minimize" aria-labelledby="ftwp-header-title" aria-label="Expand or collapse"></button><h3 id="ftwp-header-title">文章目录</h3></header><ol id="ftwp-list" class="ftwp-liststyle-decimal ftwp-effect-bounce-to-right ftwp-list-nest ftwp-strong-first ftwp-colexp ftwp-colexp-icon"><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-1"><span class="ftwp-text">获取可用采样量</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-2"><span class="ftwp-text">设置渲染目标</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-3"><span class="ftwp-text">添加新附件</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-4"><span class="ftwp-text">质量提升</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-5"><span class="ftwp-text">小结</span></a></li></ol></nav></div>
+<div id="ftwp-postcontent"><p><strong>Vulkan 多重采样</strong>(<strong>Multisampling</strong>)，我们的程序现在加载了多层LOD的纹理，它修复了对象远离观察者时的锯齿问题。图像显得更加平滑，但是仔细观察，你会发现在绘制的几何图形的边缘上有锯齿状的图案。这在我们早期的一个程序中尤其明显，当我们渲染一个四边形：<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/15666223073158538.png" alt="Vulkan 多重采样(Multisampling)" title="Vulkan 多重采样(Multisampling)" /></p>
+<p>这种不受欢迎的效果被称为“锯齿”，它是由于可供渲染的像素数量不足导致的结果。由于没有无限分辨率的显示器，总能看到一些锯齿。有很多方法可以解决这个问题，在本章中，我们将重点介绍其中一种比较流行的方法:多采样抗锯齿(Multisample anti-aliasing MSAA)。</p>
+<p>在普通渲染中，像素的颜色是基于一个单一的采样点来决定的，在大多数情况下，这个采样点是屏幕上目标像素的中心。如果绘制的线部分经过某个像素，但是没有覆盖到采样点，那么该像素会是空白，导致锯齿状的“楼梯”效果。<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/15666222810837717.png" alt="Vulkan 多重采样(Multisampling)" title="Vulkan 多重采样(Multisampling)" /></p>
+<p>MSAA所做的是，对每个像素使用多个采样点(顾名思义)来确定其最终颜色。正如人们所期望的那样，采样越多，效果越好，但是它的计算开销也更大。</p>
+<p><img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/15666223026997447.png" alt="Vulkan 多重采样(Multisampling)" title="Vulkan 多重采样(Multisampling)" /></p>
+<p>现实生活中，我们重点使用最大可用采样量。根据您的应用程序，这可能不是最好的方法，如果最终结果满足您的质量需求，为了提高性能，最好使用更少的采样。</p>
+<h2 id="ftoc-heading-1" class="ftwp-heading">获取可用采样量</h2>
+<p>首先，我们查查我们的硬件能用多少采样量。大多数现代gpu支持至少8个采样量，但是并非所有地方都是这样，我们将添加一个新的类成员来跟踪它:</p>
+<pre><code class="language-cpp  line-numbers">VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+</code></pre>
+<p>默认情况下，每个像素只使用一个采样点，这样就不会有重采样，在这种情况下，最终图像将保持不变。可以从与我们选择的物理设备相关的<code>VkPhysicalDeviceProperties</code>中提取准确的最大采样数量。我们使用的是深度缓冲区，所以我们必须同时考虑颜色和深度的采样数量—其中较小值将是我们能支持的最大值。添加一个函数为我们提取这些信息:</p>
+<pre><code class="language-cpp  line-numbers">VkSampleCountFlagBits getMaxUsableSampleCount() {
+    VkPhysicalDeviceProperties physicalDeviceProperties;
+    vkGetPhysicalDeviceProperties(physicalDevice, &amp;physicalDeviceProperties);    VkSampleCountFlags counts = std::min(physicalDeviceProperties.limits.framebufferColorSampleCounts, physicalDeviceProperties.limits.framebufferDepthSampleCounts);
+    if (counts &amp; VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+    if (counts &amp; VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+    if (counts &amp; VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+    if (counts &amp; VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+    if (counts &amp; VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
+    if (counts &amp; VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }    return VK_SAMPLE_COUNT_1_BIT;
+}
+</code></pre>
+<p>现在，我们将使用这个函数在物理设备期间设置<code>msaaSamples</code>变量。为此，我们需要稍微修改pickPhysicalDevice函数:</p>
+<pre><code class="language-cpp  line-numbers">void pickPhysicalDevice() {
+    ...
+    for (const auto&amp; device : devices) {
+        if (isDeviceSuitable(device)) {
+            physicalDevice = device;
+            msaaSamples = getMaxUsableSampleCount();
+            break;
+        }
+    }
+    ...
+}
+</code></pre>
+<h2 id="ftoc-heading-2" class="ftwp-heading">设置渲染目标</h2>
+<p>在MSAA中，每个像素都在离屏缓冲区中采样，然后将缓冲区呈现给屏幕。这个新的缓冲区与我们渲染的常规图像略有不同——它们必须能够存储每个像素的多个样本。一旦创建了多采样缓冲区，就必须将其解析为默认的帧缓存(每个像素只存储一个样本)。这就是为什么我们必须创建一个额外的渲染目标，并修改我们当前的绘图过程。我们只需要一个渲染目标，因为同一时间只能有1个绘制操作，就像深度缓冲区一样。添加以下类成员:</p>
+<pre><code class="language-cpp  line-numbers">...
+VkImage colorImage;
+VkDeviceMemory colorImageMemory;
+VkImageView colorImageView;
+...
+</code></pre>
+<p>这个新<code>colorImage</code>必须存储每个像素所需的样本数量，因此我们需要在图像创建过程中将这个数字传递给VkImageCreateInfo。通过添加一个numSamples参数来修改createImage函数:</p>
+<pre><code class="language-cpp  line-numbers">void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage&amp; image, VkDeviceMemory&amp; imageMemory) {
+    ...
+    imageInfo.samples = numSamples;
+    ...
+</code></pre>
+<p>现在，使用VK_SAMPLE_COUNT_1_BIT更新对这个函数的所有调用——随着我们逐步的实现，我们会用合适的值替代它:</p>
+<pre><code class="language-cpp  line-numbers">createImage(swapChainExtent.width, swapChainExtent.height, 1, VK_SAMPLE_COUNT_1_BIT, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
+...
+createImage(texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+</code></pre>
+<p>现在我们将创建一个多采样的颜色缓冲区。添加<code>createColorResources</code>函数，需要注意的是，我们在这里使用msaaSamples作为createImage的函数参数。我们只使用了一个mip级别，因为这是由Vulkan规范强制规定。此外，这个颜色缓冲区不需要mipmaps，因为它不会被用作纹理:</p>
+<pre><code class="language-cpp  line-numbers">void createColorResources() {
+    VkFormat colorFormat = swapChainImageFormat;    createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
+    colorImageView = createImageView(colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);    transitionImageLayout(colorImage, colorFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1);
+}
+</code></pre>
+<p>为了保持一致性，在createDepthResources之前调用如下函数:</p>
+<pre><code class="language-cpp  line-numbers">void initVulkan() {
+    ...
+    createColorResources();
+    createDepthResources();
+    ...
+}
+</code></pre>
+<p>您可能注意到，新创建的<code>color image</code>使用了从VK_IMAGE_LAYOUT_UNDEFINED到VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL的转换路径，这是我们需要处理的新情况。让我们更新transitionImageLayout函数来考虑这一点:</p>
+<pre><code class="language-cpp  line-numbers">void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
+    ...
+    else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &amp;&amp; newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    }
+    else {
+        throw std::invalid_argument("unsupported layout transition!");
+    }
+    ...
+}
+</code></pre>
+<p>现在我们已经有了一个多采样的颜色缓冲区，是时候考虑深度了。修改createDepthResources，更新深度缓冲区使用的样本数量:</p><div id="eaa_after_nth_p" class="eaa-wrapper eaa_after_nth_p eaa_desktop"><div class="eaa-ad  " style=""></div></div>
+<pre><code class="language-cpp  line-numbers">void createDepthResources() {
+    ...
+    createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
+    ...
+}
+</code></pre>
+<p>我们现在已经创建了一些新Vulkan资源，所以别忘了在需要的时候释放它们：</p>
+<pre><code class="language-cpp  line-numbers">void cleanupSwapChain() {
+    vkDestroyImageView(device, colorImageView, nullptr);
+    vkDestroyImage(device, colorImage, nullptr);
+    vkFreeMemory(device, colorImageMemory, nullptr);
+    ...
+}
+</code></pre>
+<p>更新<code>recreateSwapChain</code>，窗口的大小调整时，使新的<code>color image</code>可以重新创建在正确的分辨率:</p>
+<pre><code class="language-cpp  line-numbers">void recreateSwapChain() {
+    ...
+    createGraphicsPipeline();
+    createColorResources();
+    createDepthResources();
+    ...
+}
+</code></pre>
+<p>上面是MSAA设置阶段，现在我们需要开始在图形管道、帧缓存、渲染通道中使用这个新资源，并看看结果!</p>
+<h2 id="ftoc-heading-3" class="ftwp-heading">添加新附件</h2>
+<p>让我们先来处理渲染通道，修改<code>createRenderPass</code>、更新颜色和深度附件创建信息结构:</p>
+<pre><code class="language-cpp  line-numbers">void createRenderPass() {
+    ...
+    colorAttachment.samples = msaaSamples;
+    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    ...
+    depthAttachment.samples = msaaSamples;
+    ...
+</code></pre>
+<p>你会注意到，我们已经将finalLayout从VK_IMAGE_LAYOUT_PRESENT_SRC_KHR修改为VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL。这是因为多采样图像不能直接呈现。我们首先需要将它们解析为一个常规图像。这个要求不适用于深度缓冲区，因为它在任何时候都不会显示。因此，我们只需要添加一个新的颜色附件，即所谓的解析附件:</p>
+<pre><code class="language-cpp  line-numbers">...
+    VkAttachmentDescription colorAttachmentResolve = {};
+    colorAttachmentResolve.format = swapChainImageFormat;
+    colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
+    colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    ...
+</code></pre>
+<p>现在需要指示渲染通道将多采样的彩色图像解析为常规附件。创建一个新的附件引用，指向作为解析目标的颜色缓冲区:</p>
+<pre><code class="language-cpp  line-numbers">    ...
+    VkAttachmentReference colorAttachmentResolveRef = {};
+    colorAttachmentResolveRef.attachment = 2;
+    colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    ...
+</code></pre>
+<p>设置<code>preolveattachments</code>子结构体成员以指向新创建的附件引用。这足以让渲染通道定义一个多采样解析操作，让我们渲染图像到屏幕:</p>
+<pre><code class="language-cpp  line-numbers">    ...
+    subpass.pResolveAttachments = &amp;colorAttachmentResolveRef;
+    ...
+</code></pre>
+<p>现在使用新的颜色附件更新渲染通道信息结构体:</p>
+<pre><code class="language-cpp  line-numbers">    ...
+    std::array&lt;VkAttachmentDescription, 3&gt; attachments = {colorAttachment, depthAttachment, colorAttachmentResolve};
+    ...
+</code></pre>
+<p>渲染通道就绪后，修改createframebuffer并将新的图像视图添加到列表中:</p>
+<pre><code class="language-cpp  line-numbers">void createFrameBuffers() {
+        ...
+        std::array&lt;VkImageView, 3&gt; attachments = {
+            colorImageView,
+            depthImageView,
+            swapChainImageViews[i]
+        };
+        ...
+}
+</code></pre>
+<p>最后，通过修改createGraphicsPipeline，告诉新建管道使用多个采样:</p>
+<pre><code class="language-cpp  line-numbers">void createGraphicsPipeline() {
+    ...
+    multisampling.rasterizationSamples = msaaSamples;
+    ...
+}
+</code></pre>
+<p>现在运行你的程序，结果如下图所示：<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/15666223100589988.png" alt="Vulkan 多重采样(Multisampling)" title="Vulkan 多重采样(Multisampling)" /></p>
+<p>就像mipmapping一样，这种差异可能不会马上显现出来。仔细一看，你会发现屋顶上的边缘不再是锯齿状的，而且整个图像看起来比原来的更加平滑。<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/15666222383614607.png" alt="Vulkan 多重采样(Multisampling)" title="Vulkan 多重采样(Multisampling)" /></p>
+<p>当近距离观察其中一个边缘时，这种差异更加明显:<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/1566622174675365.png" alt="Vulkan 多重采样(Multisampling)" title="Vulkan 多重采样(Multisampling)" /></p>
+<h2 id="ftoc-heading-4" class="ftwp-heading">质量提升</h2>
+<p>我们当前的MSAA实现有一定的局限性，这可能会影响更精细场景中输出图像的质量。例如，我们目前没有解决着色器产生锯齿的潜在问题，即MSAA只针对几何体的边缘进行平滑，没有对内部填充进行平滑。这可能会导致一种问题，当你得到一个光滑的多边形渲染在屏幕上时，在高对比度的颜色下，贴图仍旧有锯齿。解决这个问题的一种方法是启用<code>Sample Shading</code>，这将进一步提高图像质量，只是性能会有所下降:</p>
+<pre><code class="language-cpp  line-numbers">void createLogicalDevice() {
+    ...
+    deviceFeatures.sampleRateShading = VK_TRUE; // enable sample shading feature for the device
+    ...
+}void createGraphicsPipeline() {
+    ...
+    multisampling.sampleShadingEnable = VK_TRUE; // enable sample shading in the pipeline
+    multisampling.minSampleShading = .2f; // min fraction for sample shading; closer to one is smoother
+    ...
+}
+</code></pre>
+<p>在本例中，我们将禁用采用着色，但在某些场景中，质量改进是显而易见的:<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/15666223074953754.png" alt="Vulkan 多重采样(Multisampling)" title="Vulkan 多重采样(Multisampling)" /></p>
+<h2 id="ftoc-heading-5" class="ftwp-heading">小结</h2>
+<p>前面做了很多工作，但是现在您终于为<code>Vulkan</code>学习打下了良好的基础。您现在所掌握的<code>Vulkan</code>基本原理的知识应该足以开始探索更多的领域，比如:</p><div id="eaa_after_nth_p_1" class="eaa-wrapper eaa_after_nth_p_1 eaa_desktop"><div class="eaa-ad  " style=""></div></div>
+<ul>
+<li>Push constants</li>
+<li>Instanced rendering</li>
+<li>Dynamic uniforms</li>
+<li>Separate images and sampler descriptors</li>
+<li>Pipeline cache</li>
+<li>Multi-threaded command buffer generation</li>
+<li>Multiple subpasses</li>
+<li>Compute shaders</li>
+</ul>
+<p>当前的程序可以用多种方式扩展，如添加<code>Blinn-Phong</code>光照、后处理效果和阴影映射。您应该能够从其他API的教程中了解这些特效是如何工作的，因为尽管Vulkan别具一格，但许多概念仍然是相同的。</p>
+<p><a href="https://vulkan-tutorial.com/code/29_multisampling.cpp">C++ code</a>/<a href="https://vulkan-tutorial.com/code/26_shader_depth.vert">Vertex shader</a>/<a href="https://vulkan-tutorial.com/code/26_shader_depth.frag">Fragment shader</a></p>
+</p></div>		</article>
+		<div class="asb aub-post aub-post-02">
+						            <div class="post-actions">
+            	<a href="javascript:;" etap="like" class="post-like action action-like" data-pid="6267"><i class="fa fa-thumbs-o-up"></i>赞(<span>5</span>)</a>            	            	            </div>
+        				
+					<div class="action-share"></div>
+		
+		<div class="article-tags"></div>
+		
+		
+		<div class="relates relates-thumb"><div class="title"><h3>猜你喜欢</h3></div><ul><li><a href="support-vulkan-game.html"><img data-src="image/img.geek-docs.com/vulkan/201911161129.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的游戏|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li><li><a href="support-vulkan-gpu.html"><img data-src="image/img.geek-docs.com/vulkan/201911112317.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的GPU|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="vulkan-basic-types.html"><img data-src="image/img.geek-docs.com/vulkan/201911100840.jpg?x-oss-process=style/4-3-thumb" alt="Vulkan 基本类型|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li><a href="vulkan-visual-studio-environment-configuration.html"><img data-src="image/img.geek-docs.com/vulkan/201910191450.png?x-oss-process=style/4-3-thumb" alt="Vulkan Visual Studio环境配置|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li></ul></div>				<div class="title" id="comments">
+	<h3>评论 <small>抢沙发</small></h3>
+</div>
+<div id="respond" class="no_webshot">
+		
+	<form action="https://geek-docs.com/wp-comments-post.php" method="post" id="commentform">
+		<div class="comt">
+			<div class="comt-title">
+				<img alt='' data-src='https://secure.gravatar.com/avatar/?s=50&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/?s=100&#038;d=mm&#038;r=g 2x' class='avatar avatar-50 photo avatar-default' height='50' width='50' />				<p><a rel="nofollow" id="cancel-comment-reply-link" href="javascript:;">取消</a></p>
+			</div>
+			<div class="comt-box">
+				<textarea placeholder="你的评论可以一针见血" class="input-block-level comt-area" name="comment" id="comment" cols="100%" rows="3" tabindex="1" onkeydown="if(event.ctrlKey&amp;&amp;event.keyCode==13){document.getElementById('submit').click();return false};"></textarea>
+				<div class="comt-ctrl">
+					<div class="comt-tips"><input type='hidden' name='comment_post_ID' value='6267' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+<label for="comment_mail_notify" class="checkbox inline hide" style="padding-top:0"><input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" value="comment_mail_notify" checked="checked"/>有人回复时邮件通知我</label></div>
+					<button type="submit" name="submit" id="submit" tabindex="5">提交评论</button>
+					<!-- <span data-type="comment-insert-smilie" class="muted comt-smilie"><i class="icon-thumbs-up icon12"></i> 表情</span> -->
+				</div>
+			</div>												<div class="comt-comterinfo" id="comment-author-info" >
+						<ul>
+							<li class="form-inline"><label class="hide" for="author">昵称</label><input class="ipt" type="text" name="author" id="author" value="" tabindex="2" placeholder="昵称"><span class="text-muted">昵称 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="email">邮箱</label><input class="ipt" type="text" name="email" id="email" value="" tabindex="3" placeholder="邮箱"><span class="text-muted">邮箱 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="url">网址</label><input class="ipt" type="text" name="url" id="url" value="" tabindex="4" placeholder="网址"><span class="text-muted">网址</span></li>
+						</ul>
+					</div>
+									</div>	</form>
+	</div>
+	</div>
+	</div></div>
+    <div class="tblside">
+    <div class="tblside-roll">
+		<h3>Vulkan 教程</h3><ul><li><a href="index.html">Vulkan 教程</a></li><li><a href="what-is-vulkan.html">什么是 Vulkan</a></li><li><a href="vulkan-development-environment-built-on-windows.html">Vulkan 开发环境搭建之Windows</a></li><li><a href="vulkan-understand-instance.html">Vulkan 创建Vulkan实例</a></li><li><a href="vulkan-physical-devices-and-queue-clusters.html">Vulkan 物理设备与队列</a></li><li><a href="vulkan-application-framework-prototype.html">Vulkan 应用程序框架原型</a></li><li><a href="understand-validation-layers.html">Vulkan 验证层</a></li><li><a href="vulkan-logical-devices-and-queues.html">Vulkan 逻辑设备与队列</a></li><li><a href="vulkan-exchange-of-chain.html">Vulkan 交换链</a></li><li><a href="vulkan-window-surface.html">Vulkan Window Surface</a></li><li><a href="vulkan-graphic-pipeline.html">Vulkan 图形管线</a></li><li><a href="vulkan-images-and-views.html">Vulkan 图像与视图</a></li><li><a href="vulkan-shader-modules.html">Vulkan 着色器模块</a></li><li><a href="vulkan-fixed-functions.html">Vulkan 固有功能</a></li><li><a href="vulkan-framebuffers.html">Vulkan 帧缓冲区</a></li><li><a href="vulkan-integration-pipeline.html">Vulkan 集成管线</a></li><li><a href="vulkan-render-passes.html">Vulkan 渲染通道</a></li><li><a href="vulkan-command-buffers.html">Vulkan 命令缓冲区</a></li><li><a href="vulkan-rendering-and-presentation.html">Vulkan 渲染和显示</a></li><li><a href="vulkan-reconstructed-commutative-chain.html">Vulkan 重构交换链</a></li><li><a href="vertex-input-description.html">Vulkan 顶点输入</a></li><li><a href="vertex-buffer-creation.html">Vulkan 创建顶点缓冲区</a></li><li><a href="vulkan-staging-buffer.html">Vulkan 临时缓冲区</a></li><li><a href="vulkan-index-buffer.html">Vulkan 索引缓冲区</a></li><li><a href="vulkan-descriptor-layout-and-buffer.html">Vulkan 描述符布局和缓冲区</a></li><li><a href="vulkan-descriptor-pool-and-sets.html">Vulkan 描述符池和集合</a></li><li><a href="vulkan-images.html">Vulkan 图像(Images)</a></li><li><a href="vulkan-image-view-and-sampler.html">Vulkan 图像视图和采样器</a></li><li><a href="combined-image-sampler.html">Vulkan 组合图像取样器</a></li><li><a href="vulkan-depth-buffering.html">Vulkan 深度缓冲区</a></li><li><a href="loading-models.html">Vulkan 加载模型</a></li><li><a href="vulkan-generating-mipmaps.html">Vulkan 生成贴图(mipmap)</a></li><li class="active"><a href="vulkan-multisampling.html">Vulkan 多重采样(Multisampling)</a></li><li><a href="vulkan-and-opengl.html">Vulkan和OpenGL区别</a></li><li><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li><li><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li></ul>    </div>
+	  		<div class="widget widget_recent_entries" id="recent-posts-3">		<h3>最新文章</h3>	
+					
+		</div></div>
+<div class="tbrside">
+<nav>
+<div id="geekdocs-fixed"></div>
+	
+</nav>
+</div>
+</section><footer class="footer">
+	<div class="container">
+							</div>
+</footer><div class="rollbar rollbar-rb"><ul><li class="rollbar-totop"><a href="javascript:(jsui.scrollTo());"><i class="fa fa-angle-up"></i><span>回顶</span></a><h6>回顶部<i></i></h6></li></ul></div>
+<script>
+window.jsui={
+	www: 'https://geek-docs.com',
+	uri: 'https://geek-docs.com/wp-content/themes/dux',
+	ver: '6.0',
+	roll: ["1","2","3"],
+	ajaxpager: '5',
+	url_rp: 'https://geek-docs.com/'
+};
+</script>
+        <!--[if lte IE 9]>
+        <script>
+            'use strict';
+            (function($) {
+                $(document).ready(function() {
+                    $('#ftwp-container').addClass('ftwp-ie9');
+                });
+            })(jQuery);
+        </script>
+        <![endif]-->
+		<link rel='stylesheet' id='prism-theme-style-css'  href='css/prism-hopscotch.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-toolbar-css'  href='css/prism-toolbar.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-line-numbers-css'  href='css/prism-line-numbers.min.css?ver=1.15.0' type='text/css' media='all' />
+<script type='text/javascript' src='js/jquery.min.js?ver=1.12.4'></script>
+<script type='text/javascript' src='js/katex.min.js?ver=0.10.0-beta'></script>
+<script type='text/javascript' src='js/bootstrap.min.js?ver=6.0'></script>
+<script type='text/javascript' src='js/loader.js?ver=6.0'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var q2w3_sidebar_options = [{"sidebar":"q2w3-default-sidebar","margin_top":10,"stop_id":"","screen_max_width":0,"screen_max_height":0,"width_inherit":false,"refresh_interval":1500,"window_load_hook":false,"disable_mo_api":false,"widgets":["geekdocs-fixed"]}];
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/q2w3-fixed-widget.min.js?ver=5.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var fixedtocOption = {"showAdminbar":"","inOutEffect":"zoom","isNestedList":"1","isColExpList":"1","showColExpIcon":"1","isAccordionList":"","isQuickMin":"1","isEscMin":"1","isEnterMax":"1","fixedMenu":"","scrollOffset":"10","fixedOffsetX":"10","fixedOffsetY":"0","fixedPosition":"middle-left","contentsFixedHeight":"","inPost":"","contentsFloatInPost":"left","contentsWidthInPost":"0","contentsHeightInPost":"","contentsColexpInitMobile":"1","inWidget":"","fixedWidget":"","triggerBorder":"medium","contentsBorder":"thin","triggerSize":"50","isClickableHeader":"","debug":"","postContentSelector":"#ftwp-postcontent","mobileMaxWidth":"768","disappearPoint":"content-bottom"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/ftoc.min.js?ver=3.1.24'></script>
+<script type='text/javascript' src='js/hoverIntent.min.js?ver=1.8.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var megamenu = {"timeout":"300","interval":"100"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/maxmegamenu.js?ver=2.9.7'></script>
+<script type='text/javascript' src='js/wp-embed.min.js?ver=4.9.20'></script>
+<script type='text/javascript' src='js/prism-core.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-autoloader.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-toolbar.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-line-numbers.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-show-language.min.js?ver=1.15.0'></script>
+		<script type="text/javascript">
+            (function ($) {
+                $(document).ready(function () {
+                    $(".katex.math.inline").each(function () {
+                        var parent = $(this).parent()[0];
+                        if (parent.localName !== "code") {
+                            var texTxt = $(this).text();
+                            var el = $(this).get(0);
+                            try {
+                                katex.render(texTxt, el);
+                            } catch (err) {
+                                $(this).html("<span class=\'err\'>" + err);
+                            }
+                        } else {
+                            $(this).parent().text($(this).parent().text());
+                        }
+                    });
+                    $(".katex.math.multi-line").each(function () {
+                        var texTxt = $(this).text();
+                        var el = $(this).get(0);
+                        try {
+                            katex.render(texTxt, el, {displayMode: true})
+                        } catch (err) {
+                            $(this).html("<span class=\'err\'>" + err)
+                        }
+                    });
+                })
+            })(jQuery);
+		</script>
+				<script type="text/javascript">
+			Prism.plugins.autoloader.languages_path = "http://cdn.bootcss.com/prism/1.15.0/components/"
+		</script>
+		</body></html>

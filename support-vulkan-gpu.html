@@ -1,0 +1,296 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=11,IE=10,IE=9,IE=8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-title" content="极客教程">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+<title>支持Vulkan的GPU|极客教程</title><link rel='stylesheet' id='Katex-css'  href='css/katex.min.css?ver=0.10.0-beta' type='text/css' media='all' />
+<link rel='stylesheet' id='megamenu-css'   href='css/style.css?ver=e86352' type='text/css' media='all' />
+<link rel='stylesheet' id='dashicons-css'  href='css/dashicons.min.css?ver=4.9.20' type='text/css' media='all' />
+<link rel='stylesheet' id='_bootstrap-css'  href='css/bootstrap.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_fontawesome-css'  href='css/font-awesome.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_main-css'  href='css/main.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='fixedtoc-style-css'  href='css/ftoc.min.css?ver=3.1.24' type='text/css' media='all' />
+<style id='fixedtoc-style-inline-css' type='text/css'>
+#ftwp-container.ftwp-wrap #ftwp-contents { width: 255px; height: auto; } #ftwp-container.ftwp-wrap #ftwp-trigger { width: 50px; height: 50px; font-size: 30px; } #ftwp-container #ftwp-trigger.ftwp-border-medium { font-size: 29px; } #ftwp-container.ftwp-wrap #ftwp-header { font-size: 16px; font-family: inherit; } #ftwp-container.ftwp-wrap #ftwp-header-title { font-weight: bold; } #ftwp-container.ftwp-wrap #ftwp-list { font-size: 14px; font-family: inherit; } #ftwp-container #ftwp-list.ftwp-liststyle-decimal .ftwp-anchor::before { font-size: 14px; } #ftwp-container #ftwp-list.ftwp-strong-first>.ftwp-item>.ftwp-anchor .ftwp-text { font-size: 15.4px; } #ftwp-container #ftwp-list.ftwp-strong-first.ftwp-liststyle-decimal>.ftwp-item>.ftwp-anchor::before { font-size: 15.4px; } #ftwp-container.ftwp-wrap #ftwp-trigger { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-trigger { border-color: rgba(51,51,51,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents { border-color: rgba(51,51,51,0.95); } #ftwp-container.ftwp-wrap #ftwp-header { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents:hover #ftwp-header { background: #f3f3f3; } #ftwp-container.ftwp-wrap #ftwp-list { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents:hover #ftwp-list { background: #f3f3f3; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-anchor:hover { color: #00A368; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-anchor:focus, #ftwp-container.ftwp-wrap #ftwp-list .ftwp-active, #ftwp-container.ftwp-wrap #ftwp-list .ftwp-active:hover { color: #fff; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-text::before { background: rgba(9,168,0,0.95); } .ftwp-heading-target::before { background: rgba(9,168,0,0.95); }
+</style>        <style>
+            .eaa-clean {
+                padding: 0 !important;
+                border: none !important;
+            }            .eaa-ad.alignleft {
+                margin-right: 10px;
+            }            .eaa-ad.alignright {
+                margin-left: 10px;
+            }
+            .eaa-ad.debug{
+                background:peachpuff;
+                border:solid 2px #FF0000;
+                box-sizing: border-box;
+            }        </style>		
+<link rel='prev' title='观察者模式' href='https://geek-docs.com/design-pattern/observer-pattern/observer-pattern-index.html' />
+<link rel='next' title='状态模式' href='https://geek-docs.com/design-pattern/state-pattern/state-pattern-index.html' />
+<link rel="canonical" href="support-vulkan-gpu.html"/><meta name="keywords" content="支持Vulkan的GPU,GPU,Vulkan">
+<meta name="description" content="支持Vulkan的GPU，GPU最早由NVDIA于1999年提出，指的是专门为执行图形渲染所需的复杂计算而设计的专用处理器，其在图形渲染工作的效率要远高于通用设计目标的CPU。对于3D图形相关开发人员及游戏爱好者而言，GPU能力是衡量PC或移动设备性能的重要指标。本文简要介绍目前能够很好支持Vulkan的GPU。  移动端GPU的4大家族  Android 平台下，由于没有统一的硬件标准，导致各厂">
+<style>.container{max-width:1780px}a:hover, .site-navbar li:hover > a, .site-navbar li.active a:hover, .site-navbar a:hover, .search-on .site-navbar li.navto-search a, .topbar a:hover, .site-nav li.current-menu-item > a, .site-nav li.current-menu-parent > a, .site-search-form a:hover, .branding-primary .btn:hover, .title .more a:hover, .excerpt h2 a:hover, .excerpt .meta a:hover, .excerpt-minic h2 a:hover, .excerpt-minic .meta a:hover, .article-content .wp-caption:hover .wp-caption-text, .article-content a, .article-nav a:hover, .relates a:hover, .widget_links li a:hover, .widget_categories li a:hover, .widget_ui_comments strong, .widget_ui_posts li a:hover .text, .widget_ui_posts .nopic .text:hover , .widget_meta ul a:hover, .tagcloud a:hover, .textwidget a, .textwidget a:hover, .sign h3, #navs .item li a, .url, .url:hover, .excerpt h2 a:hover span, .widget_ui_posts a:hover .text span, .widget-navcontent .item-01 li a:hover span, .excerpt-minic h2 a:hover span, .relates a:hover span{color: #09a800;}.btn-primary, .label-primary, .branding-primary, .post-copyright:hover, .article-tags a, .pagination ul > .active > a, .pagination ul > .active > span, .pagenav .current, .widget_ui_tags .items a:hover, .sign .close-link, .pagemenu li.active a, .pageheader, .resetpasssteps li.active, #navs h2, #navs nav, .btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary, .tag-clouds a:hover{background-color: #09a800;}.btn-primary, .search-input:focus, #bdcs .bdcs-search-form-input:focus, #submit, .plinks ul li a:hover,.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary{border-color: #09a800;}.search-btn, .label-primary, #bdcs .bdcs-search-form-submit, #submit, .excerpt .cat{background-color: #09a800;}.excerpt .cat i{border-left-color:#09a800;}@media (max-width: 720px) {.site-navbar li.active a, .site-navbar li.active a:hover, .m-nav-show .m-icon-nav{color: #09a800;}}@media (max-width: 480px) {.pagination ul > li.next-page a{background-color:#09a800;}}.post-actions .action.action-like,.pagemenu li.current-menu-item > a{background-color: #09a800;}.catleader h1{border-left-color: #09a800;}.loop-product-filters ul .current-cat>a{color: #09a800;}.tblside-roll h3{background-color:#09a800 !important;}.tblside-roll li.active a{color:#09a800 !important;border-left-color:#09a800 !important;}.single .content, .category .content{margin-right: 300px !important;margin-left: 300px !important;}
+.tblside{position: relative;float: left;width: 300px;margin-left: -100%;overflow:hidden;}
+.tblside-roll{margin-bottom: 15px;}
+.tblside-ads{margin-bottom: 15px;}
+.tblside-ads h3{margin:0px 0px 15px 0px;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tblside-roll li{margin-bottom: 0;}
+.tblside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:break-word;}
+.tblside-roll li.cat-item{margin-left: 0;}
+.tblside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tblside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+.tbrside{position: relative;float: right;width: 300px;margin-left: -100%;overflow:hidden;}
+.tbrside-roll{margin-bottom: 15px;}
+.tbrside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tbrside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tbrside-roll li{margin-bottom: 0;}
+.tbrside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.tbrside-roll li.cat-item{margin-left: 0;}
+.tbrside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tbrside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+@media (max-width:1100px){
+	.single .content, .category .content{margin-left: 0 !important;margin-right: 0 !important;}
+	.tblside{display: none !important;}
+	.tbrside{display: none !important;}
+}</style><style type="text/css">/** Mega Menu CSS: fs **/</style>
+<link rel="shortcut icon" href="image/favicon.ico">
+<!--[if lt IE 9]><script src="https://geek-docs.com/wp-content/themes/dux/js/libs/html5.min.js"></script><![endif]-->
+</head>
+<body class="post-template-default single single-post postid-7364 single-format-standard m-excerpt-cat topbar-off comment-open site-layout-3 text-justify-on mega-menu-nav has-ftoc">
+<header class="header">
+	<div class="container">
+		<div class="logo"><a href="https://geek-docs.com/" title="极客教程 - 以工匠精神打磨精品教程"><img src="image/static/logo.png" alt="极客教程 - 以工匠精神打磨精品教程">极客教程</a></div>				<ul class="site-nav site-navbar">
+			<div id="mega-menu-wrap-nav" class="mega-menu-wrap"><div class="mega-menu-toggle"><div class="mega-toggle-blocks-left"></div><div class="mega-toggle-blocks-center"></div><div class="mega-toggle-blocks-right"><div class='mega-toggle-block mega-menu-toggle-animated-block mega-toggle-block-0' id='mega-toggle-block-0'><button aria-label="Toggle Menu" class="mega-toggle-animated mega-toggle-animated-slider" type="button" aria-expanded="false">
+                  <span class="mega-toggle-animated-box">
+                    <span class="mega-toggle-animated-inner"></span>
+                  </span>
+                </button></div></div></div><ul id="mega-menu-nav" class="mega-menu max-mega-menu mega-menu-horizontal mega-no-js" data-event="hover" data-effect="disabled" data-effect-speed="200" data-effect-mobile="disabled" data-effect-speed-mobile="0" data-mobile-force-width="false" data-second-click="go" data-document-click="collapse" data-vertical-behaviour="standard" data-breakpoint="768" data-unbind="true" data-mobile-state="collapse_all" data-hover-intent-timeout="300" data-hover-intent-interval="100"><li class='mega-menu-item mega-menu-item-type-custom mega-menu-item-object-custom mega-menu-item-has-children mega-align-bottom-left mega-menu-flyout mega-menu-item-18090' id='mega-menu-item-18090'><a class="mega-menu-link" aria-haspopup="true" aria-expanded="false" tabindex="0">基础编程<span class="mega-indicator"></span></a>						<i class="fa fa-bars m-icon-nav"></i>
+			</div>
+</header>
+<div class="site-search">
+	<div class="container">
+		<form method="get" class="site-search-form" action="https://geek-docs.com/" ><input class="search-input" name="s" type="text" placeholder="输入关键字" value=""><button class="search-btn" type="submit"><i class="fa fa-search"></i></button></form>	</div>
+</div>	<div class="breadcrumbs">
+		<div class="container">当前位置：<a href="/">极客教程</a> <small>></small> <a href="/">Vulkan</a> <small>></small> <a href="">Vulkan 教程</a> <small>></small> 支持Vulkan的GPU</div>
+	</div>
+<section class="container">
+	<div class="content-wrap">
+	<div class="content">
+				<header class="article-header">
+			<h1 class="article-title"><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></h1>
+		</header>
+				
+				<nav class="article-nav">
+			<div class="asb aub-post aub-post-01">
+
+</div>			<span class="article-nav-prev">上一篇 <a href="https://geek-docs.com/design-pattern/observer-pattern/observer-pattern-index.html" rel="prev">观察者模式</a></span>
+			<span class="article-nav-next">下一篇 <a href="https://geek-docs.com/design-pattern/state-pattern/state-pattern-index.html" rel="next">状态模式</a></span>
+		</nav>
+				
+		<article class="article-content">
+			<div id="ftwp-container" class="ftwp-wrap ftwp-hidden-state ftwp-minimize ftwp-middle-left"><button type="button" id="ftwp-trigger" class="ftwp-shape-round ftwp-border-medium" title="单击以最大化目录"><span class="ftwp-trigger-icon ftwp-icon-menu"></span></button><nav id="ftwp-contents" class="ftwp-shape-round ftwp-border-thin"><header id="ftwp-header"><span id="ftwp-header-control" class="ftwp-icon-menu"></span><button type="button" id="ftwp-header-minimize" class="ftwp-icon-minimize" aria-labelledby="ftwp-header-title" aria-label="Expand or collapse"></button><h3 id="ftwp-header-title">文章目录</h3></header><ol id="ftwp-list" class="ftwp-liststyle-decimal ftwp-effect-bounce-to-right ftwp-list-nest ftwp-strong-first ftwp-colexp ftwp-colexp-icon"><li class="ftwp-item ftwp-has-sub ftwp-expand"><button type="button" aria-label="Expand or collapse" class="ftwp-icon-expand"></button><a class="ftwp-anchor" href="#ftoc-heading-1"><span class="ftwp-text">移动端GPU的4大家族</span></a><ol class="ftwp-sub"><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-2"><span class="ftwp-text">PowerVR Rogue 系列</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-3"><span class="ftwp-text">Mali 系列</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-4"><span class="ftwp-text">Adreno 系列</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-5"><span class="ftwp-text">GeForce ULV 系列</span></a></li></ol></li><li class="ftwp-item ftwp-has-sub ftwp-expand"><button type="button" aria-label="Expand or collapse" class="ftwp-icon-expand"></button><a class="ftwp-anchor" href="#ftoc-heading-6"><span class="ftwp-text">PC 端GPU中3大家族</span></a><ol class="ftwp-sub"><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-7"><span class="ftwp-text">NVIDA</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-8"><span class="ftwp-text">AMD</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-9"><span class="ftwp-text">Intel</span></a></li></ol></li></ol></nav></div>
+<div id="ftwp-postcontent"><p><strong>支持Vulkan的GPU</strong>，GPU最早由NVDIA于1999年提出，指的是专门为执行图形渲染所需的复杂计算而设计的专用处理器，其在图形渲染工作的效率要远高于通用设计目标的CPU。对于3D图形相关开发人员及游戏爱好者而言，GPU能力是衡量PC或移动设备性能的重要指标。本文简要介绍目前能够很好支持<a href="/">Vulkan</a>的GPU。</p>
+<h2 id="ftoc-heading-1" class="ftwp-heading">移动端GPU的4大家族</h2>
+<p>Android 平台下，由于没有统一的硬件标准，导致各厂家各型号之智能手机，平板电脑的硬件配置大相径庭。目前应用在Android 移动平台的GPU主要有4家公司提供，分别为<code>Imagination</code>, <code>ARM</code>、高通和<code>NVIDIA</code>。下面简单介绍一下这些公司提供的支持 Vulkan 的 GPU。</p>
+<h3 id="ftoc-heading-2" class="ftwp-heading">PowerVR Rogue 系列</h3>
+<p><strong>PowerVR Rogue</strong> 是由<code>Imagination</code>于2010年发布的 PowerVR 架构，支持 Vulkan 需要PowerVR 6 及更新的系列，具体情况如下：</p>
+<ul>
+<li>PowerVR Series7XT 系列是中高端图形处理器，主要型号有 PowerVR GT7200、PowerVR GT7400、PowerVR GT7600、PowerVR GT7800、PowerVT GT7900等。该系列可以选择2-16集群配置（64-512个 ALU 核心）。Series7XT 系列支持 HDR 渲染，4K纹理，物理着色等。</li>
+<li>Android 设备中使用了 PowerVR 架构 GPU 的代表性产品是魅族的 PRO7 Pluse。这款手机搭载了 Helio X30 处理器，集成了PowerVR 7XTP GPU。<br />
+<img src="image/img.geek-docs.com/vulkan/201911112314.jpg" alt="支持Vulkan的GPU" title="支持Vulkan的GPU" /></li>
+<li>PowerVR 9XE/9XM系列大大提升了内存子系统的性能，支持32位寻址能力、增大突发传输数据位宽、提升内存访问效率、增强压缩能力，内存带宽可节约 25%。其关键特性还有分块延迟渲染、硬件虚拟化、OminiShield多域安全性、PVRIC3无损影像压缩等技术。</li>
+</ul>
+<h3 id="ftoc-heading-3" class="ftwp-heading">Mali 系列</h3>
+<p>Mali 系列 GPU 是 ARM 设计出品的，其中 Midgardl-4 可以全平台支持Vulkan API。目前主要型号为 Mali-G71、Mali-G72、Mali-T760、Mali-T820、Mali-T830、Mali-T860、Mali-T880等，具体情况如下:</p>
+<ul>
+<li>Mali-G71基于 Bifrost 架构，拥有非常强大的移动图像处理能力，大大降低了设计功率，以提高同等核心面积下的图形处理器。如下图，Galaxy S8 系列手机采用的就是 Mali-G71 图形处理器。<br />
+<img src="image/img.geek-docs.com/vulkan/201911112309.jpg" alt="支持Vulkan的GPU" title="支持Vulkan的GPU" /></li>
+<li>相比 Mali-G71、Mali-G72 在性能、机器学习、VR这 3 方面做了优化，其性能是G71的 1.4 倍。Mali-G72 使用了称之为跟随脉冲的渲染技术，像素本地缓存的写入带宽最多可减少45%，大大降低 GPU 运算的负荷。</li>
+<li>Mali-T760 促进 Midgard 体系架构进入能源高效的新时代，完全支持当前和下一代图形和计算 API，其拥有惊人的图形和保证优秀的执行计算密集任务，比如计算摄影，手势识别以及图像稳定等先进技术。</li>
+<li>Mali-T800 系列的 GPU 任然基于 Midgard 架构，与 Mali-T600/T700 相比，重点优化了面积、能效，并增加了一些新的技术特征。如下图所示的Galaxy A7系列手机使用的就是 Mali-T830图像处理器。<br />
+<img src="image/img.geek-docs.com/vulkan/201911112310.jpg" alt="支持Vulkan的GPU" title="支持Vulkan的GPU" /></li>
+</ul>
+<h3 id="ftoc-heading-4" class="ftwp-heading">Adreno 系列</h3>
+<p><strong>Adreno</strong> 系列由高通推出，被广泛应用于高通的 Snapdragon(骁龙) 平台上。其中，高通 Adreno 400 和 Adreno 500 系列全平台支持Vulkan API。目前应用较为广泛3款Adreno系列GPU分别是 Adreno430、Adreno530、Adreno540。</p>
+<ul>
+<li>Adreno430 图形处理器是内嵌在高通骁龙 810 处理器之中，与用在骁龙 805 处理器中的上一代GPU产品 Adreno420 相比，在性能方面有 30% 的提升，并在功耗上有 20% 的下降。</li>
+<li>Adreno 530 与 Adreno430 相比功耗降低了 40%，而图形和计算性能提升了 40%。Adreno530 支持 64 位虚拟地址，允许共享虚拟内存(SVM)并高效地与 64 位 CPU 进行协处理，如下图所示的小米5采用的就是 Adreno 530 图形处理器。<br />
+<img src="image/img.geek-docs.com/vulkan/201911112311.jpg" alt="支持Vulkan的GPU" title="支持Vulkan的GPU" /></li>
+<li>Adreno 540 与 Adreno 530 相比，将频率提高了 710MHZ，提升近 14% 的性能。再加上其他方面的各种优化。Adreno540 的性能比 Adreno530 提升达 25%。如下图所示，小米6搭载的骁龙 835 处理器集成了 Adreno 540 图形处理器。<br />
+<img src="image/img.geek-docs.com/vulkan/201911112312.jpg" alt="支持Vulkan的GPU" title="支持Vulkan的GPU" /></li>
+</ul>
+<h3 id="ftoc-heading-5" class="ftwp-heading">GeForce ULV 系列</h3>
+<p><strong>GeForce ULV</strong> 系列由 NVDIA 推出，被广泛应用于 Tegra 平台。目前支持Vulkan API的型号主要为Tegra x1等。从性能上来看，英伟达的 GeForce 系列图形芯片在整体上非常优秀，特别是在<strong>高清视频录制</strong>和<strong>视频播放</strong>及大型<strong>3D游戏</strong>方面有着卓越的表现。</p>
+<p>Tegra X1是英伟达目前最先进的移动处理器，其拥有 256 个 NAVIDA Maxwell GPU核心和一颗 64 位 GPU，具备优异的 4K 视频功能和超越上一代产品的节能性。例如 NVDIA 推出的Shield系列游戏机及平板产品都是搭载的Tegra X1，而大名鼎鼎的任天堂Switch也是采用的Tegra X1改进版。<br />
+<img src="image/img.geek-docs.com/vulkan/201911112313.jpg" alt="支持Vulkan的GPU" title="支持Vulkan的GPU" /></p>
+<h2 id="ftoc-heading-6" class="ftwp-heading">PC 端GPU中3大家族</h2>
+<p>与移动端GPU相比，PC端 GPU 最核心的差别在于性能设计不同。为了满足 PC 端计算需求更高的游戏或图形处理软件的要求，PC端 GPU 的性能较移动端 GPU 高出一大截。目前市场上的 PC 端GPU 主要有 NVDIA、AMD、Inter提供，具体情况如下：</p>
+<h3 id="ftoc-heading-7" class="ftwp-heading">NVIDA</h3>
+<p><strong>NVIDA</strong> 是PC 端领域GPU提供商中的翘楚，目前市场上很多高性能游戏PC、图形处理工作站都是采用了其提供的 GPU。NVDIA GPU 对 Vulkan 的支持较为广泛，Kepler、Maxwell、Pascal的3代GPU中的大部分型号都可以良好地兼容 Vulkan API。下面介绍两个比较新系列的产品：</p>
+<ul>
+<li>NVDIA GeForce GTX 10 系列，包括GTX 1080 T1, GTX 1070 Ti, GTX 1070、GTX 1060、GTX 1050、Titan Xp等型号，采用全新的vPascalv架构，可应用于 4K HDR及之上的环境，带来无缝的电影级效果及卓越的PC游戏体验。</li>
+<li>NVDIA GeForce GTX 9 系列，包括 GTX 965， GTX 970， GTX 980， GTX 980Ti 等型号，采用 Maxwell 架构，并且使用了诸如 G-SYNC，GameStream，SL1等先进技术，能在1080P显示器上呈现 4k 画质的图像。<br />
+<img src="image/img.geek-docs.com/vulkan/201911112315.jpg" alt="支持Vulkan的GPU" title="支持Vulkan的GPU" /></li>
+</ul>
+<h3 id="ftoc-heading-8" class="ftwp-heading">AMD</h3>
+<p>AMD 是一家专门为计算机，通信和消费电子行业设计和制造各种创新的微处理器(CPU、GPU、APU、主板芯片，电视芯片等)，以及提供闪存和低功率处理解决方案的公司。产品中基于次世代图形核心(GCN)架构的任何 AMD APU 或RadeonTM GPU现在均能良好适配Vulkan API。下面介绍产品中较新的几个系列：</p>
+<ul>
+<li>AMD Radeon R5/R7/R9 几个系列采用 GCN 结构，可为用户带来革命性的性能和图像质量，并且支持vulkan、DirectX 12、Mantle、OpenGL 4.4等新一代图形API。</li>
+<li>AMD Radeon 500 系列显卡采用第三代GCN结构，提供5个计算单元，最高核心频率1021 MHz，同样能够支持最新的几种图形API。</li>
+<li>AMD RADEON RX 系列显卡，包括 RX 480、RX 470、RX 470D、RX 460等几个子系列、均采用北极星(Polaris)架构，也能够适配Vulkan API.</li>
+</ul>
+<p><img src="image/img.geek-docs.com/vulkan/201911112316.jpg" alt="支持Vulkan的GPU" title="支持Vulkan的GPU" /></p>
+<h3 id="ftoc-heading-9" class="ftwp-heading">Intel</h3>
+<p>Intel 是美国一家主要研制CPU处理器的公司，是全球最大的个人计算机零件和CPU制造商。目前市面上的Sky Lake和Kaby Lake系列处理器搭载的核显基本都可以适配Vulkan API，诸如常见的HD Graphics 510/515/520/530、Iris Graphics 540/550/580、HD610/630等。<br />
+<img src="image/img.geek-docs.com/vulkan/201911112317.jpg" alt="支持Vulkan的GPU" title="支持Vulkan的GPU" /></p>
+<p><strong>极客教程相关文章推荐，欢迎阅读！</strong><br />
+<a href="https://geek-docs.com/vulkan/vulkanrt/vulkan-runtime-libraries.html">Vulkan RunTime Libraries</a><br />
+<a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a><br />
+<a href="what-is-vulkan.html">什么是 Vulkan</a><br />
+<a href="vulkan-and-opengl.html">Vulkan和OpenGL区别</a></p>
+</p></div>		</article>
+		<div class="asb aub-post aub-post-02">
+						            <div class="post-actions">
+            	<a href="javascript:;" etap="like" class="post-like action action-like" data-pid="7364"><i class="fa fa-thumbs-o-up"></i>赞(<span>7</span>)</a>            	            	            </div>
+        				
+					<div class="action-share"></div>
+		
+		<div class="article-tags"></div>
+		
+		
+		<div class="relates relates-thumb"><div class="title"><h3>猜你喜欢</h3></div><ul><li><a href="support-vulkan-game.html"><img data-src="image/img.geek-docs.com/vulkan/201911161129.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的游戏|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li><li><a href="vulkan-basic-types.html"><img data-src="image/img.geek-docs.com/vulkan/201911100840.jpg?x-oss-process=style/4-3-thumb" alt="Vulkan 基本类型|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li><a href="vulkan-visual-studio-environment-configuration.html"><img data-src="image/img.geek-docs.com/vulkan/201910191450.png?x-oss-process=style/4-3-thumb" alt="Vulkan Visual Studio环境配置|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li><li><a href="vulkan-and-opengl.html"><img data-src="image/img.geek-docs.com/vulkan/201910072026.jpg?x-oss-process=style/4-3-thumb" alt="Vulkan和OpenGL区别|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-and-opengl.html">Vulkan和OpenGL区别</a></li></ul></div>				<div class="title" id="comments">
+	<h3>评论 <small>抢沙发</small></h3>
+</div>
+<div id="respond" class="no_webshot">
+		
+	<form action="https://geek-docs.com/wp-comments-post.php" method="post" id="commentform">
+		<div class="comt">
+			<div class="comt-title">
+				<img alt='' data-src='https://secure.gravatar.com/avatar/?s=50&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/?s=100&#038;d=mm&#038;r=g 2x' class='avatar avatar-50 photo avatar-default' height='50' width='50' />				<p><a rel="nofollow" id="cancel-comment-reply-link" href="javascript:;">取消</a></p>
+			</div>
+			<div class="comt-box">
+				<textarea placeholder="你的评论可以一针见血" class="input-block-level comt-area" name="comment" id="comment" cols="100%" rows="3" tabindex="1" onkeydown="if(event.ctrlKey&amp;&amp;event.keyCode==13){document.getElementById('submit').click();return false};"></textarea>
+				<div class="comt-ctrl">
+					<div class="comt-tips"><input type='hidden' name='comment_post_ID' value='7364' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+<label for="comment_mail_notify" class="checkbox inline hide" style="padding-top:0"><input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" value="comment_mail_notify" checked="checked"/>有人回复时邮件通知我</label></div>
+					<button type="submit" name="submit" id="submit" tabindex="5">提交评论</button>
+					<!-- <span data-type="comment-insert-smilie" class="muted comt-smilie"><i class="icon-thumbs-up icon12"></i> 表情</span> -->
+				</div>
+			</div>												<div class="comt-comterinfo" id="comment-author-info" >
+						<ul>
+							<li class="form-inline"><label class="hide" for="author">昵称</label><input class="ipt" type="text" name="author" id="author" value="" tabindex="2" placeholder="昵称"><span class="text-muted">昵称 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="email">邮箱</label><input class="ipt" type="text" name="email" id="email" value="" tabindex="3" placeholder="邮箱"><span class="text-muted">邮箱 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="url">网址</label><input class="ipt" type="text" name="url" id="url" value="" tabindex="4" placeholder="网址"><span class="text-muted">网址</span></li>
+						</ul>
+					</div>
+									</div>	</form>
+	</div>
+	</div>
+	</div></div>
+    <div class="tblside">
+    <div class="tblside-roll">
+		<h3>Vulkan 教程</h3><ul><li><a href="index.html">Vulkan 教程</a></li><li><a href="what-is-vulkan.html">什么是 Vulkan</a></li><li><a href="vulkan-development-environment-built-on-windows.html">Vulkan 开发环境搭建之Windows</a></li><li><a href="vulkan-understand-instance.html">Vulkan 创建Vulkan实例</a></li><li><a href="vulkan-physical-devices-and-queue-clusters.html">Vulkan 物理设备与队列</a></li><li><a href="vulkan-application-framework-prototype.html">Vulkan 应用程序框架原型</a></li><li><a href="understand-validation-layers.html">Vulkan 验证层</a></li><li><a href="vulkan-logical-devices-and-queues.html">Vulkan 逻辑设备与队列</a></li><li><a href="vulkan-exchange-of-chain.html">Vulkan 交换链</a></li><li><a href="vulkan-window-surface.html">Vulkan Window Surface</a></li><li><a href="vulkan-graphic-pipeline.html">Vulkan 图形管线</a></li><li><a href="vulkan-images-and-views.html">Vulkan 图像与视图</a></li><li><a href="vulkan-shader-modules.html">Vulkan 着色器模块</a></li><li><a href="vulkan-fixed-functions.html">Vulkan 固有功能</a></li><li><a href="vulkan-framebuffers.html">Vulkan 帧缓冲区</a></li><li><a href="vulkan-integration-pipeline.html">Vulkan 集成管线</a></li><li><a href="vulkan-render-passes.html">Vulkan 渲染通道</a></li><li><a href="vulkan-command-buffers.html">Vulkan 命令缓冲区</a></li><li><a href="vulkan-rendering-and-presentation.html">Vulkan 渲染和显示</a></li><li><a href="vulkan-reconstructed-commutative-chain.html">Vulkan 重构交换链</a></li><li><a href="vertex-input-description.html">Vulkan 顶点输入</a></li><li><a href="vertex-buffer-creation.html">Vulkan 创建顶点缓冲区</a></li><li><a href="vulkan-staging-buffer.html">Vulkan 临时缓冲区</a></li><li><a href="vulkan-index-buffer.html">Vulkan 索引缓冲区</a></li><li><a href="vulkan-descriptor-layout-and-buffer.html">Vulkan 描述符布局和缓冲区</a></li><li><a href="vulkan-descriptor-pool-and-sets.html">Vulkan 描述符池和集合</a></li><li><a href="vulkan-images.html">Vulkan 图像(Images)</a></li><li><a href="vulkan-image-view-and-sampler.html">Vulkan 图像视图和采样器</a></li><li><a href="combined-image-sampler.html">Vulkan 组合图像取样器</a></li><li><a href="vulkan-depth-buffering.html">Vulkan 深度缓冲区</a></li><li><a href="loading-models.html">Vulkan 加载模型</a></li><li><a href="vulkan-generating-mipmaps.html">Vulkan 生成贴图(mipmap)</a></li><li><a href="vulkan-multisampling.html">Vulkan 多重采样(Multisampling)</a></li><li><a href="vulkan-and-opengl.html">Vulkan和OpenGL区别</a></li><li><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li><li><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li class="active"><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li></ul>    </div>
+	  		<div class="widget widget_recent_entries" id="recent-posts-3">		<h3>最新文章</h3>	
+					
+		</div></div>
+<div class="tbrside">
+<nav>
+<div id="geekdocs-fixed"></div>
+	
+</nav>
+</div>
+</section><footer class="footer">
+	<div class="container">
+							</div>
+</footer><div class="rollbar rollbar-rb"><ul><li class="rollbar-totop"><a href="javascript:(jsui.scrollTo());"><i class="fa fa-angle-up"></i><span>回顶</span></a><h6>回顶部<i></i></h6></li></ul></div>
+<script>
+window.jsui={
+	www: 'https://geek-docs.com',
+	uri: 'https://geek-docs.com/wp-content/themes/dux',
+	ver: '6.0',
+	roll: ["1","2","3"],
+	ajaxpager: '5',
+	url_rp: 'https://geek-docs.com/'
+};
+</script>
+        <!--[if lte IE 9]>
+        <script>
+            'use strict';
+            (function($) {
+                $(document).ready(function() {
+                    $('#ftwp-container').addClass('ftwp-ie9');
+                });
+            })(jQuery);
+        </script>
+        <![endif]-->
+		<link rel='stylesheet' id='prism-theme-style-css'  href='css/prism-hopscotch.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-toolbar-css'  href='css/prism-toolbar.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-line-numbers-css'  href='css/prism-line-numbers.min.css?ver=1.15.0' type='text/css' media='all' />
+<script type='text/javascript' src='js/jquery.min.js?ver=1.12.4'></script>
+<script type='text/javascript' src='js/katex.min.js?ver=0.10.0-beta'></script>
+<script type='text/javascript' src='js/bootstrap.min.js?ver=6.0'></script>
+<script type='text/javascript' src='js/loader.js?ver=6.0'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var q2w3_sidebar_options = [{"sidebar":"q2w3-default-sidebar","margin_top":10,"stop_id":"","screen_max_width":0,"screen_max_height":0,"width_inherit":false,"refresh_interval":1500,"window_load_hook":false,"disable_mo_api":false,"widgets":["geekdocs-fixed"]}];
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/q2w3-fixed-widget.min.js?ver=5.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var fixedtocOption = {"showAdminbar":"","inOutEffect":"zoom","isNestedList":"1","isColExpList":"1","showColExpIcon":"1","isAccordionList":"","isQuickMin":"1","isEscMin":"1","isEnterMax":"1","fixedMenu":"","scrollOffset":"10","fixedOffsetX":"10","fixedOffsetY":"0","fixedPosition":"middle-left","contentsFixedHeight":"","inPost":"","contentsFloatInPost":"left","contentsWidthInPost":"0","contentsHeightInPost":"","contentsColexpInitMobile":"1","inWidget":"","fixedWidget":"","triggerBorder":"medium","contentsBorder":"thin","triggerSize":"50","isClickableHeader":"","debug":"","postContentSelector":"#ftwp-postcontent","mobileMaxWidth":"768","disappearPoint":"content-bottom"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/ftoc.min.js?ver=3.1.24'></script>
+<script type='text/javascript' src='js/hoverIntent.min.js?ver=1.8.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var megamenu = {"timeout":"300","interval":"100"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/maxmegamenu.js?ver=2.9.7'></script>
+<script type='text/javascript' src='js/wp-embed.min.js?ver=4.9.20'></script>
+<script type='text/javascript' src='js/prism-core.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-autoloader.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-toolbar.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-line-numbers.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-show-language.min.js?ver=1.15.0'></script>
+		<script type="text/javascript">
+            (function ($) {
+                $(document).ready(function () {
+                    $(".katex.math.inline").each(function () {
+                        var parent = $(this).parent()[0];
+                        if (parent.localName !== "code") {
+                            var texTxt = $(this).text();
+                            var el = $(this).get(0);
+                            try {
+                                katex.render(texTxt, el);
+                            } catch (err) {
+                                $(this).html("<span class=\'err\'>" + err);
+                            }
+                        } else {
+                            $(this).parent().text($(this).parent().text());
+                        }
+                    });
+                    $(".katex.math.multi-line").each(function () {
+                        var texTxt = $(this).text();
+                        var el = $(this).get(0);
+                        try {
+                            katex.render(texTxt, el, {displayMode: true})
+                        } catch (err) {
+                            $(this).html("<span class=\'err\'>" + err)
+                        }
+                    });
+                })
+            })(jQuery);
+		</script>
+				<script type="text/javascript">
+			Prism.plugins.autoloader.languages_path = "http://cdn.bootcss.com/prism/1.15.0/components/"
+		</script>
+		</body></html>

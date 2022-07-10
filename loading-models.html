@@ -1,0 +1,379 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=11,IE=10,IE=9,IE=8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-title" content="极客教程">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+<title>Vulkan 加载模型|极客教程</title><link rel='stylesheet' id='Katex-css'  href='css/katex.min.css?ver=0.10.0-beta' type='text/css' media='all' />
+<link rel='stylesheet' id='megamenu-css'   href='css/style.css?ver=e86352' type='text/css' media='all' />
+<link rel='stylesheet' id='dashicons-css'  href='css/dashicons.min.css?ver=4.9.20' type='text/css' media='all' />
+<link rel='stylesheet' id='_bootstrap-css'  href='css/bootstrap.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_fontawesome-css'  href='css/font-awesome.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_main-css'  href='css/main.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='fixedtoc-style-css'  href='css/ftoc.min.css?ver=3.1.24' type='text/css' media='all' />
+<style id='fixedtoc-style-inline-css' type='text/css'>
+#ftwp-container.ftwp-wrap #ftwp-contents { width: 255px; height: auto; } #ftwp-container.ftwp-wrap #ftwp-trigger { width: 50px; height: 50px; font-size: 30px; } #ftwp-container #ftwp-trigger.ftwp-border-medium { font-size: 29px; } #ftwp-container.ftwp-wrap #ftwp-header { font-size: 16px; font-family: inherit; } #ftwp-container.ftwp-wrap #ftwp-header-title { font-weight: bold; } #ftwp-container.ftwp-wrap #ftwp-list { font-size: 14px; font-family: inherit; } #ftwp-container #ftwp-list.ftwp-liststyle-decimal .ftwp-anchor::before { font-size: 14px; } #ftwp-container #ftwp-list.ftwp-strong-first>.ftwp-item>.ftwp-anchor .ftwp-text { font-size: 15.4px; } #ftwp-container #ftwp-list.ftwp-strong-first.ftwp-liststyle-decimal>.ftwp-item>.ftwp-anchor::before { font-size: 15.4px; } #ftwp-container.ftwp-wrap #ftwp-trigger { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-trigger { border-color: rgba(51,51,51,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents { border-color: rgba(51,51,51,0.95); } #ftwp-container.ftwp-wrap #ftwp-header { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents:hover #ftwp-header { background: #f3f3f3; } #ftwp-container.ftwp-wrap #ftwp-list { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents:hover #ftwp-list { background: #f3f3f3; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-anchor:hover { color: #00A368; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-anchor:focus, #ftwp-container.ftwp-wrap #ftwp-list .ftwp-active, #ftwp-container.ftwp-wrap #ftwp-list .ftwp-active:hover { color: #fff; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-text::before { background: rgba(9,168,0,0.95); } .ftwp-heading-target::before { background: rgba(9,168,0,0.95); }
+</style>        <style>
+            .eaa-clean {
+                padding: 0 !important;
+                border: none !important;
+            }            .eaa-ad.alignleft {
+                margin-right: 10px;
+            }            .eaa-ad.alignright {
+                margin-left: 10px;
+            }
+            .eaa-ad.debug{
+                background:peachpuff;
+                border:solid 2px #FF0000;
+                box-sizing: border-box;
+            }        </style>		
+<link rel='prev' title='Vulkan 深度缓冲区' href='vulkan-depth-buffering.html' />
+<link rel='next' title='LSTM网络简介' href='https://geek-docs.com/deep-learning/rnn/lstm-intro.html' />
+<link rel="canonical" href="loading-models.html"/><meta name="keywords" content="Vulkan加载模型,Loading models,Vulkan教程,Vulkan">
+<meta name="description" content="Vulkan 加载模型(Loading models)，应用程序现在已经可以渲染纹理3D模型，但是 vertices 顶点和 indices 索引数组中的几何体不是很有趣。在本章节我们扩展程序，从实际的模型文件冲加载顶点和索引数据，并使图形卡实际做一些工作。  许多图形API系列教程中让读者在这样的章节中编写自己的OBJ加载程序。这样做的问题是任何有趣的3D应用程序很快需要某种功能，但是该文件格式">
+<style>.container{max-width:1780px}a:hover, .site-navbar li:hover > a, .site-navbar li.active a:hover, .site-navbar a:hover, .search-on .site-navbar li.navto-search a, .topbar a:hover, .site-nav li.current-menu-item > a, .site-nav li.current-menu-parent > a, .site-search-form a:hover, .branding-primary .btn:hover, .title .more a:hover, .excerpt h2 a:hover, .excerpt .meta a:hover, .excerpt-minic h2 a:hover, .excerpt-minic .meta a:hover, .article-content .wp-caption:hover .wp-caption-text, .article-content a, .article-nav a:hover, .relates a:hover, .widget_links li a:hover, .widget_categories li a:hover, .widget_ui_comments strong, .widget_ui_posts li a:hover .text, .widget_ui_posts .nopic .text:hover , .widget_meta ul a:hover, .tagcloud a:hover, .textwidget a, .textwidget a:hover, .sign h3, #navs .item li a, .url, .url:hover, .excerpt h2 a:hover span, .widget_ui_posts a:hover .text span, .widget-navcontent .item-01 li a:hover span, .excerpt-minic h2 a:hover span, .relates a:hover span{color: #09a800;}.btn-primary, .label-primary, .branding-primary, .post-copyright:hover, .article-tags a, .pagination ul > .active > a, .pagination ul > .active > span, .pagenav .current, .widget_ui_tags .items a:hover, .sign .close-link, .pagemenu li.active a, .pageheader, .resetpasssteps li.active, #navs h2, #navs nav, .btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary, .tag-clouds a:hover{background-color: #09a800;}.btn-primary, .search-input:focus, #bdcs .bdcs-search-form-input:focus, #submit, .plinks ul li a:hover,.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary{border-color: #09a800;}.search-btn, .label-primary, #bdcs .bdcs-search-form-submit, #submit, .excerpt .cat{background-color: #09a800;}.excerpt .cat i{border-left-color:#09a800;}@media (max-width: 720px) {.site-navbar li.active a, .site-navbar li.active a:hover, .m-nav-show .m-icon-nav{color: #09a800;}}@media (max-width: 480px) {.pagination ul > li.next-page a{background-color:#09a800;}}.post-actions .action.action-like,.pagemenu li.current-menu-item > a{background-color: #09a800;}.catleader h1{border-left-color: #09a800;}.loop-product-filters ul .current-cat>a{color: #09a800;}.tblside-roll h3{background-color:#09a800 !important;}.tblside-roll li.active a{color:#09a800 !important;border-left-color:#09a800 !important;}.single .content, .category .content{margin-right: 300px !important;margin-left: 300px !important;}
+.tblside{position: relative;float: left;width: 300px;margin-left: -100%;overflow:hidden;}
+.tblside-roll{margin-bottom: 15px;}
+.tblside-ads{margin-bottom: 15px;}
+.tblside-ads h3{margin:0px 0px 15px 0px;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tblside-roll li{margin-bottom: 0;}
+.tblside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:break-word;}
+.tblside-roll li.cat-item{margin-left: 0;}
+.tblside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tblside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+.tbrside{position: relative;float: right;width: 300px;margin-left: -100%;overflow:hidden;}
+.tbrside-roll{margin-bottom: 15px;}
+.tbrside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tbrside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tbrside-roll li{margin-bottom: 0;}
+.tbrside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.tbrside-roll li.cat-item{margin-left: 0;}
+.tbrside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tbrside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+@media (max-width:1100px){
+	.single .content, .category .content{margin-left: 0 !important;margin-right: 0 !important;}
+	.tblside{display: none !important;}
+	.tbrside{display: none !important;}
+}</style><style type="text/css">/** Mega Menu CSS: fs **/</style>
+<link rel="shortcut icon" href="image/favicon.ico">
+<!--[if lt IE 9]><script src="https://geek-docs.com/wp-content/themes/dux/js/libs/html5.min.js"></script><![endif]-->
+</head>
+<body class="post-template-default single single-post postid-4581 single-format-standard m-excerpt-cat topbar-off comment-open site-layout-3 text-justify-on mega-menu-nav has-ftoc">
+<header class="header">
+	<div class="container">
+		<div class="logo"><a href="https://geek-docs.com/" title="极客教程 - 以工匠精神打磨精品教程"><img src="image/static/logo.png" alt="极客教程 - 以工匠精神打磨精品教程">极客教程</a></div>				<ul class="site-nav site-navbar">
+			<div id="mega-menu-wrap-nav" class="mega-menu-wrap"><div class="mega-menu-toggle"><div class="mega-toggle-blocks-left"></div><div class="mega-toggle-blocks-center"></div><div class="mega-toggle-blocks-right"><div class='mega-toggle-block mega-menu-toggle-animated-block mega-toggle-block-0' id='mega-toggle-block-0'><button aria-label="Toggle Menu" class="mega-toggle-animated mega-toggle-animated-slider" type="button" aria-expanded="false">
+                  <span class="mega-toggle-animated-box">
+                    <span class="mega-toggle-animated-inner"></span>
+                  </span>
+                </button></div></div></div><ul id="mega-menu-nav" class="mega-menu max-mega-menu mega-menu-horizontal mega-no-js" data-event="hover" data-effect="disabled" data-effect-speed="200" data-effect-mobile="disabled" data-effect-speed-mobile="0" data-mobile-force-width="false" data-second-click="go" data-document-click="collapse" data-vertical-behaviour="standard" data-breakpoint="768" data-unbind="true" data-mobile-state="collapse_all" data-hover-intent-timeout="300" data-hover-intent-interval="100"><li class='mega-menu-item mega-menu-item-type-custom mega-menu-item-object-custom mega-menu-item-has-children mega-align-bottom-left mega-menu-flyout mega-menu-item-18090' id='mega-menu-item-18090'><a class="mega-menu-link" aria-haspopup="true" aria-expanded="false" tabindex="0">基础编程<span class="mega-indicator"></span></a>						<i class="fa fa-bars m-icon-nav"></i>
+			</div>
+</header>
+<div class="site-search">
+	<div class="container">
+		<form method="get" class="site-search-form" action="https://geek-docs.com/" ><input class="search-input" name="s" type="text" placeholder="输入关键字" value=""><button class="search-btn" type="submit"><i class="fa fa-search"></i></button></form>	</div>
+</div>	<div class="breadcrumbs">
+		<div class="container">当前位置：<a href="/">极客教程</a> <small>></small> <a href="/">Vulkan</a> <small>></small> <a href="">Vulkan 教程</a> <small>></small> Vulkan 加载模型</div>
+	</div>
+<section class="container">
+	<div class="content-wrap">
+	<div class="content">
+				<header class="article-header">
+			<h1 class="article-title"><a href="loading-models.html">Vulkan 加载模型</a></h1>
+		</header>
+				
+				<nav class="article-nav">
+			<div class="asb aub-post aub-post-01">
+
+</div>			<span class="article-nav-prev">上一篇 <a href="vulkan-depth-buffering.html" rel="prev">Vulkan 深度缓冲区</a></span>
+			<span class="article-nav-next">下一篇 <a href="https://geek-docs.com/deep-learning/rnn/lstm-intro.html" rel="next">LSTM网络简介</a></span>
+		</nav>
+				
+		<article class="article-content">
+			<div id="ftwp-container" class="ftwp-wrap ftwp-hidden-state ftwp-minimize ftwp-middle-left"><button type="button" id="ftwp-trigger" class="ftwp-shape-round ftwp-border-medium" title="单击以最大化目录"><span class="ftwp-trigger-icon ftwp-icon-menu"></span></button><nav id="ftwp-contents" class="ftwp-shape-round ftwp-border-thin"><header id="ftwp-header"><span id="ftwp-header-control" class="ftwp-icon-menu"></span><button type="button" id="ftwp-header-minimize" class="ftwp-icon-minimize" aria-labelledby="ftwp-header-title" aria-label="Expand or collapse"></button><h3 id="ftwp-header-title">文章目录</h3></header><ol id="ftwp-list" class="ftwp-liststyle-decimal ftwp-effect-bounce-to-right ftwp-list-nest ftwp-strong-first ftwp-colexp ftwp-colexp-icon"><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-1"><span class="ftwp-text">准备工作</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-2"><span class="ftwp-text">样本模型</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-3"><span class="ftwp-text">加载顶点和索引</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-4"><span class="ftwp-text">删除顶点重复数据</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-5"><span class="ftwp-text">结论</span></a></li></ol></nav></div>
+<div id="ftwp-postcontent"><p><strong>Vulkan 加载模型</strong>(<strong>Loading models</strong>)，应用程序现在已经可以渲染纹理<strong>3D模型</strong>，但是 <strong>vertices</strong> 顶点和 <strong>indices</strong> 索引数组中的几何体不是很有趣。在本章节我们扩展程序，从实际的模型文件冲加载顶点和索引数据，并使图形卡实际做一些工作。</p>
+<p>许多图形API系列教程中让读者在这样的章节中编写自己的OBJ加载程序。这样做的问题是任何有趣的3D应用程序很快需要某种功能，但是该文件格式不支持，比如骨骼动画 skeletal animation。我们将在本章加载 OBJ 模型文件的网格数据，但是我们更多关注在网格数据与程序本身进行整合，而不是从文件中加载它们的细节</p>
+<p>操作系统: Windows8.1<br />
+显卡: Nivida GTX965M<br />
+开发工具：Visual Studio 2017</p>
+<h2 id="ftoc-heading-1" class="ftwp-heading">准备工作</h2>
+<p><strong>Library</strong><br />
+我们将使用 <strong>tinyobjloader</strong> 库来从OBJ文件中加载vertices和faces数据。它很快速，容易集成，因为它是一个单独的文件库，如stb_image。转到上面链接的库地址，并将 <strong>tiny_obj_loader.h</strong> 头文件下载到库目录中的文件夹中。</p>
+<p><strong>Visual Studio</strong><br />
+因为之前已经在VS中设置了引用的库目录在解决方案的根目录下，所以我们直接在库目录新建 <strong>tinyobjloader</strong>目录 存放 <strong>tiny_obj_loader.h</strong> 头文件即可使用。下图示例：<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/1113490-20170717220810146-1369697611.png" alt="Vulkan 加载模型" title="Vulkan 加载模型" /><br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/1113490-20170717220815755-1056172517.png" alt="Vulkan 加载模型" title="Vulkan 加载模型" /></p>
+<h2 id="ftoc-heading-2" class="ftwp-heading">样本模型</h2>
+<p>在本章中我们不会涉及光照，所以它有助于使用具有烘培到纹理中的光照的样本模型。找到这样的模型的简单方法是直接在 <strong>Sketchfab</strong> 上查找。该网站上的许多模型都具有OBJ格式，并且都有 lisence 授权许可。</p>
+<p>在本教程中我们决定使用<strong>Chalet Hippolyte Chassande Baroz</strong>模型，它是由Escadrone制作并授权的。我调整了模型的大小和方向，将其用作当前几何体的替代品：</p>
+<ul>
+<li><strong>chalet.obj</strong></li>
+<li><strong>chalet.jpg</strong></li>
+</ul>
+<p>它有50W个三角形，所以它是我们的应用程序的一个很好的基准。在这里随意使用自己的模型文件，但是要确保它们是由一种材质构成的，尺寸约为1.5 x 1.5 x 1.5 单位。如果大于此值，则必须修改视图矩阵。将模型文件放在 <strong>shaders</strong> 和 <strong>textures</strong> 同级的新模型目录中 <strong>models</strong>，并将纹理贴图放在 <strong>textures</strong> 目录中。</p>
+<p>添加两个新的配置变量到程序中，用于定义模型和贴图的路径：</p>
+<pre><code class="language-cpp  line-numbers">const int WIDTH = 800;
+const int HEIGHT = 600;const std::string MODEL_PATH = "models/chalet.obj";
+const std::string TEXTURE_PATH = "textures/chalet.jpg";
+</code></pre>
+<p>并且更新 <strong>createTextureImage</strong> 使用该变量：</p>
+<pre><code class="language-cpp  line-numbers">stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &amp;texWidth, &amp;texHeight, &amp;texChannels, STBI_rgb_alpha);
+</code></pre>
+<h2 id="ftoc-heading-3" class="ftwp-heading">加载顶点和索引</h2>
+<p>现在我们将要从模型文件中加载顶点和索引数据，所以应该移除全局的 <strong>vertices</strong> 和 <strong>indices</strong> 数组。将它们作为类成员替换为非常量容器：</p>
+<pre><code class="language-cpp  line-numbers">std::vector&lt;Vertex&gt; vertices;
+std::vector&lt;uint32_t&gt; indices;
+VkBuffer vertexBuffer;
+VkDeviceMemory vertexBufferMemory;
+</code></pre>
+<p>在这里应该修改索引数据类型 <strong>uint16_t</strong> 到 <strong>uint32_t</strong> 。因为将会有超过65535个或者更多的顶点。还需要更改 <strong>vkCmdBindIndexBuffer</strong> 参数：</p>
+<pre><code class="language-cpp  line-numbers">vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+</code></pre>
+<p>tinyobjloader库与STB库一样。包括 <strong>tiny_obj_loader.h</strong> 文件，并确保在一个源文件中定义 <strong>TINYOBJLOADER_IMPLEMENTATION</strong> 以包含函数体，并避免链接错误：</p>
+<pre><code class="language-cpp  line-numbers">#define TINYOBJLOADER_IMPLEMENTATION
+#include &lt;tiny_obj_loader.h&gt;
+</code></pre>
+<p>我们现在编写一个 <strong>loadModel</strong> 函数，该函数使用这个库来填充顶点 <strong>vertices</strong> 和索引 <strong>indices</strong> 容器，其中包含网格中的顶点数据。在创建顶点和索引缓冲区之前应该调用它：</p>
+<pre><code class="language-cpp  line-numbers">void initVulkan() {
+    ...
+    loadModel();
+    createVertexBuffer();
+    createIndexBuffer();
+    ...
+}...void loadModel() {}
+</code></pre>
+<p>模型加载后被封装到库的数据结构中，通过调用 <strong>tinyobj::LoadObj</strong> 函数完成。</p>
+<pre><code class="language-cpp  line-numbers">void loadModel() {
+    tinyobj::attrib_t attrib;
+    std::vector&lt;tinyobj::shape_t&gt; shapes;
+    std::vector&lt;tinyobj::material_t&gt; materials;
+    std::string err;    if (!tinyobj::LoadObj(&amp;attrib, &amp;shapes, &amp;materials, &amp;err, MODEL_PATH.c_str())) {
+        throw std::runtime_error(err);
+    }
+}
+</code></pre>
+<p>OBJ文件由positions， normals， texture uvs 和 faces组成，其中每个顶点指向一个位置，通过索引指向 法线或者纹理坐标。这使得不仅可以重复使用整个顶点，还可以具有单独的属性。</p><div id="eaa_after_nth_p" class="eaa-wrapper eaa_after_nth_p eaa_desktop"><div class="eaa-ad  " style=""></div></div>
+<p><strong>attrib</strong> 容器持有所有的 positions， normals 和 texture uvs 在它的 <strong>attrib.vertices</strong>, <strong>attrib.normals</strong> 和 <strong>attrib.texcoords</strong> 容器中。 <strong>shapes</strong> 容器包含所有单独的对象和面。每个面由一组顶点组成，每个顶点包含 positions，normals 和 texture uvs 对应的 indices。OBJ模型也可以定义每个面的材质和纹理，但是我们忽略它们。</p>
+<p><strong>err</strong> 字符串包含了加载文件过程中产生的错误和警告信息，比如缺少材质的定义。如果 <strong>LoadObj</strong> 函数返回 <strong>false</strong>，则加载才算真的失败。如上所述，OBJ 问及爱你中的面可以包含任意数量的顶点，而我们的应用程序只能渲染三角形。幸运的是， <strong>LoadObj</strong> 有一个可选参数来自动对这些面进行三角测量，这是默认启用的。</p>
+<p>我们将组合所有的面到一个单独的模型中，所以遍历所有的形状：</p>
+<pre><code class="language-cpp  line-numbers">for (const auto&amp; shape : shapes) {}
+</code></pre>
+<p>三角测量功能已经确保每个面都有三个顶点，所以我们现在可以直接迭代顶点将它们直接存储到我们的 <strong>vertices</strong> 向量中：</p>
+<pre><code class="language-cpp  line-numbers">for (const auto&amp; shape : shapes) {
+    for (const auto&amp; index : shape.mesh.indices) {
+        Vertex vertex = {};        vertices.push_back(vertex);
+        indices.push_back(indices.size());
+    }
+}
+</code></pre>
+<p>为了简单起见，我们假设每个顶点现在是唯一的，因此简单的自动递增索引。 <strong>index</strong> 变量是<strong>tinyobj::index_t</strong> 类型的，包含了 <strong>vertex_index</strong>, <strong>normal_index</strong> 和 <strong>texcoord_index</strong> 成员。我们需要使用这些索引从 <strong>attrib</strong> 数组中 查找实际的顶点属性：</p>
+<pre><code class="language-cpp  line-numbers">vertex.pos = {
+    attrib.vertices[3 * index.vertex_index + 0],
+    attrib.vertices[3 * index.vertex_index + 1],
+    attrib.vertices[3 * index.vertex_index + 2]
+};vertex.texCoord = {
+    attrib.texcoords[2 * index.texcoord_index + 0],
+    attrib.texcoords[2 * index.texcoord_index + 1]
+};vertex.color = {1.0f, 1.0f, 1.0f};
+</code></pre>
+<p>遗憾的是， <strong>attrib.vertices</strong> 数组是一个 <strong>float</strong> 数组，而不是<strong>glm::vec3</strong>，所以需要将索引乘以 <strong>3</strong> 。相似的，每个条目有两个纹理坐标分量。** 0<strong>，</strong>1<strong>，</strong>2**的偏移用于访问X，Y和Z分量，或者在纹理坐标的情况下访问U和V分量。</p>
+<p>运行程序，启动优化(例如Visual studio中的 <strong>Relase</strong>，以及GCC的 <strong>-O3</strong> 编译器标志)，这是必要的，否则加载模型会很慢，你会看到如下内容：<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/1113490-20170719124511865-577330943.png" alt="Vulkan 加载模型" title="Vulkan 加载模型" /><br />
+很好，看起来几何图形是正确的，但是纹理贴图发生了什么？这个问题是由于Vulkan的纹理坐标的起点是左上角，而OBJ格式则是左下角。通过反转纹理坐标的垂直分量来解决这个问题：</p>
+<pre><code class="language-cpp  line-numbers">vertex.texCoord = {
+    attrib.texcoords[2 * index.texcoord_index + 0],
+    1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
+};
+</code></pre>
+<p>再次运行程序看到如下正确结果：<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/1113490-20170719124729583-669553020.png" alt="Vulkan 加载模型" title="Vulkan 加载模型" /><br />
+所有这些艰苦的工作终于开始通过这样的演示得到回报！</p>
+<h2 id="ftoc-heading-4" class="ftwp-heading">删除顶点重复数据</h2>
+<p>遗憾的是我们并没有真正利用索引缓冲区的优势。 <strong>vertices</strong>向量包含大量重复的顶点数据，因为许多顶点包含在多个三角形中。我们应该只保留唯一的顶点数据，并使用索引缓冲区来重新使用它们。实现这一点的直接方法是使用 <strong>map</strong> 或者 <strong>unordered_map</strong> 来跟踪唯一的顶点和相应的索引信息：</p>
+<pre><code class="language-cpp  line-numbers">#include &lt;unordered_map&gt;...std::unordered_map&lt;Vertex, uint32_t&gt; uniqueVertices = {};for (const auto&amp; shape : shapes) {
+    for (const auto&amp; index : shape.mesh.indices) {
+        Vertex vertex = {};        ...        if (uniqueVertices.count(vertex) == 0) {
+            uniqueVertices[vertex] = static_cast&lt;uint32_t&gt;(vertices.size());
+            vertices.push_back(vertex);
+        }        indices.push_back(uniqueVertices[vertex]);
+    }
+}
+</code></pre>
+<p>每次从OBJ文件中读取顶点时，我们检查一下是否已经看到一个具有相同位置和纹理坐标的顶点。如果没有，我们将其添加到 <strong>vertices</strong> 并将其索引存储在 <strong>uniqueVertices</strong> 容器中。之后，我们将新的顶点的索引添加到索引容器中。如果我们已经看到完全相同的顶点，那么我们在 <strong>uniqueVertices</strong> 中查找其索引，并将该索引存储在 <strong>indices</strong> 中。</p>
+<p>程序将会编译错误，因为使用类似我们的 Vertex 结构体，它是自定义类型作为哈希表中的键，因为需要实现两个功能：灯饰测试和散列值计算。前者通过覆盖 <strong>Vertex</strong> 结构中的 == 运算符很容易实现：</p>
+<pre><code class="language-cpp  line-numbers">bool operator==(const Vertex&amp; other) const {
+    return pos == other.pos &amp;&amp; color == other.color &amp;&amp; texCoord == other.texCoord;
+}
+</code></pre>
+<p>通过为 <strong>std::hash<T></strong> 指定模版专门来实现 <strong>Vertex</strong> 的哈希函数。散列函数是一个复杂的主题，但 <strong>cppreference.com</strong> 建议采用以下方法组合结构体的字段来创建质量比较高的散列函数：</p>
+<pre><code class="language-cpp  line-numbers">namespace std {
+    template&lt;&gt; struct hash&lt;Vertex&gt; {
+        size_t operator()(Vertex const&amp; vertex) const {
+            return ((hash&lt;glm::vec3&gt;()(vertex.pos) ^
+                   (hash&lt;glm::vec3&gt;()(vertex.color) &lt;&lt; 1)) &gt;&gt; 1) ^ 
+                   (hash&lt;glm::vec2&gt;()(vertex.texCoord) &lt;&lt; 1);
+        }
+    };
+}
+</code></pre>
+<p>该代码应该放置在 <strong>Vertex</strong> 结构体之外。需要使用以下头文件来包含GLM类型的哈希函数：</p>
+<pre><code class="language-cpp  line-numbers">#include &lt;glm/gtx/hash.hpp&gt;
+</code></pre>
+<p>现在应该能够成功编译和运行程序。如果检查 <strong>vertices</strong> 顶点数量，会发现它已经从 1,500,000 缩小到 265,645！这意味着每个顶点以平均被 大约6个三角形重新使用。这绝对会为我们节省很多GPU内存。</p>
+<h2 id="ftoc-heading-5" class="ftwp-heading">结论</h2>
+<p>到目前为止，已经做了很多工作，但是现在你终于有了一个很好的基础。现在拥有的Vulkan的基本原理的知识足以探索更深入的课题，诸如：</p>
+<ul>
+<li>Push constants</li>
+<li>Instanced rendering</li>
+<li>Dynamic uniforms</li>
+<li>Separate images and sampler descriptors</li>
+<li>Pipeline cache</li>
+<li>Multi-threaded command buffer generation</li>
+<li>Multi subpasses</li>
+<li>Compute shaders</li>
+</ul>
+<p>现在的程序有很多方式进行扩展，比如添加 Blinn-Phong lighting，post-processing效果和阴影映射。你应该能够了解这些效果如何从其他的API来完成，尽管因为Vulkan的明确性，但是许多概念是相同的。</p><div id="eaa_after_nth_p_1" class="eaa-wrapper eaa_after_nth_p_1 eaa_desktop"><div class="eaa-ad  " style=""></div></div>
+</p></div>		</article>
+		<div class="asb aub-post aub-post-02">
+						            <div class="post-actions">
+            	<a href="javascript:;" etap="like" class="post-like action action-like" data-pid="4581"><i class="fa fa-thumbs-o-up"></i>赞(<span>4</span>)</a>            	            	            </div>
+        				
+					<div class="action-share"></div>
+		
+		<div class="article-tags"></div>
+		
+		
+		<div class="relates relates-thumb"><div class="title"><h3>猜你喜欢</h3></div><ul><li><a href="support-vulkan-game.html"><img data-src="image/img.geek-docs.com/vulkan/201911161129.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的游戏|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li><li><a href="support-vulkan-gpu.html"><img data-src="image/img.geek-docs.com/vulkan/201911112317.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的GPU|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="vulkan-basic-types.html"><img data-src="image/img.geek-docs.com/vulkan/201911100840.jpg?x-oss-process=style/4-3-thumb" alt="Vulkan 基本类型|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li><a href="vulkan-visual-studio-environment-configuration.html"><img data-src="image/img.geek-docs.com/vulkan/201910191450.png?x-oss-process=style/4-3-thumb" alt="Vulkan Visual Studio环境配置|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li></ul></div>				<div class="title" id="comments">
+	<h3>评论 <small>抢沙发</small></h3>
+</div>
+<div id="respond" class="no_webshot">
+		
+	<form action="https://geek-docs.com/wp-comments-post.php" method="post" id="commentform">
+		<div class="comt">
+			<div class="comt-title">
+				<img alt='' data-src='https://secure.gravatar.com/avatar/?s=50&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/?s=100&#038;d=mm&#038;r=g 2x' class='avatar avatar-50 photo avatar-default' height='50' width='50' />				<p><a rel="nofollow" id="cancel-comment-reply-link" href="javascript:;">取消</a></p>
+			</div>
+			<div class="comt-box">
+				<textarea placeholder="你的评论可以一针见血" class="input-block-level comt-area" name="comment" id="comment" cols="100%" rows="3" tabindex="1" onkeydown="if(event.ctrlKey&amp;&amp;event.keyCode==13){document.getElementById('submit').click();return false};"></textarea>
+				<div class="comt-ctrl">
+					<div class="comt-tips"><input type='hidden' name='comment_post_ID' value='4581' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+<label for="comment_mail_notify" class="checkbox inline hide" style="padding-top:0"><input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" value="comment_mail_notify" checked="checked"/>有人回复时邮件通知我</label></div>
+					<button type="submit" name="submit" id="submit" tabindex="5">提交评论</button>
+					<!-- <span data-type="comment-insert-smilie" class="muted comt-smilie"><i class="icon-thumbs-up icon12"></i> 表情</span> -->
+				</div>
+			</div>												<div class="comt-comterinfo" id="comment-author-info" >
+						<ul>
+							<li class="form-inline"><label class="hide" for="author">昵称</label><input class="ipt" type="text" name="author" id="author" value="" tabindex="2" placeholder="昵称"><span class="text-muted">昵称 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="email">邮箱</label><input class="ipt" type="text" name="email" id="email" value="" tabindex="3" placeholder="邮箱"><span class="text-muted">邮箱 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="url">网址</label><input class="ipt" type="text" name="url" id="url" value="" tabindex="4" placeholder="网址"><span class="text-muted">网址</span></li>
+						</ul>
+					</div>
+									</div>	</form>
+	</div>
+	</div>
+	</div></div>
+    <div class="tblside">
+    <div class="tblside-roll">
+		<h3>Vulkan 教程</h3><ul><li><a href="index.html">Vulkan 教程</a></li><li><a href="what-is-vulkan.html">什么是 Vulkan</a></li><li><a href="vulkan-development-environment-built-on-windows.html">Vulkan 开发环境搭建之Windows</a></li><li><a href="vulkan-understand-instance.html">Vulkan 创建Vulkan实例</a></li><li><a href="vulkan-physical-devices-and-queue-clusters.html">Vulkan 物理设备与队列</a></li><li><a href="vulkan-application-framework-prototype.html">Vulkan 应用程序框架原型</a></li><li><a href="understand-validation-layers.html">Vulkan 验证层</a></li><li><a href="vulkan-logical-devices-and-queues.html">Vulkan 逻辑设备与队列</a></li><li><a href="vulkan-exchange-of-chain.html">Vulkan 交换链</a></li><li><a href="vulkan-window-surface.html">Vulkan Window Surface</a></li><li><a href="vulkan-graphic-pipeline.html">Vulkan 图形管线</a></li><li><a href="vulkan-images-and-views.html">Vulkan 图像与视图</a></li><li><a href="vulkan-shader-modules.html">Vulkan 着色器模块</a></li><li><a href="vulkan-fixed-functions.html">Vulkan 固有功能</a></li><li><a href="vulkan-framebuffers.html">Vulkan 帧缓冲区</a></li><li><a href="vulkan-integration-pipeline.html">Vulkan 集成管线</a></li><li><a href="vulkan-render-passes.html">Vulkan 渲染通道</a></li><li><a href="vulkan-command-buffers.html">Vulkan 命令缓冲区</a></li><li><a href="vulkan-rendering-and-presentation.html">Vulkan 渲染和显示</a></li><li><a href="vulkan-reconstructed-commutative-chain.html">Vulkan 重构交换链</a></li><li><a href="vertex-input-description.html">Vulkan 顶点输入</a></li><li><a href="vertex-buffer-creation.html">Vulkan 创建顶点缓冲区</a></li><li><a href="vulkan-staging-buffer.html">Vulkan 临时缓冲区</a></li><li><a href="vulkan-index-buffer.html">Vulkan 索引缓冲区</a></li><li><a href="vulkan-descriptor-layout-and-buffer.html">Vulkan 描述符布局和缓冲区</a></li><li><a href="vulkan-descriptor-pool-and-sets.html">Vulkan 描述符池和集合</a></li><li><a href="vulkan-images.html">Vulkan 图像(Images)</a></li><li><a href="vulkan-image-view-and-sampler.html">Vulkan 图像视图和采样器</a></li><li><a href="combined-image-sampler.html">Vulkan 组合图像取样器</a></li><li><a href="vulkan-depth-buffering.html">Vulkan 深度缓冲区</a></li><li class="active"><a href="loading-models.html">Vulkan 加载模型</a></li><li><a href="vulkan-generating-mipmaps.html">Vulkan 生成贴图(mipmap)</a></li><li><a href="vulkan-multisampling.html">Vulkan 多重采样(Multisampling)</a></li><li><a href="vulkan-and-opengl.html">Vulkan和OpenGL区别</a></li><li><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li><li><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li></ul>    </div>
+	  		<div class="widget widget_recent_entries" id="recent-posts-3">		<h3>最新文章</h3>	
+					
+		</div></div>
+<div class="tbrside">
+<nav>
+<div id="geekdocs-fixed"></div>
+	
+</nav>
+</div>
+</section><footer class="footer">
+	<div class="container">
+							</div>
+</footer><div class="rollbar rollbar-rb"><ul><li class="rollbar-totop"><a href="javascript:(jsui.scrollTo());"><i class="fa fa-angle-up"></i><span>回顶</span></a><h6>回顶部<i></i></h6></li></ul></div>
+<script>
+window.jsui={
+	www: 'https://geek-docs.com',
+	uri: 'https://geek-docs.com/wp-content/themes/dux',
+	ver: '6.0',
+	roll: ["1","2","3"],
+	ajaxpager: '5',
+	url_rp: 'https://geek-docs.com/'
+};
+</script>
+        <!--[if lte IE 9]>
+        <script>
+            'use strict';
+            (function($) {
+                $(document).ready(function() {
+                    $('#ftwp-container').addClass('ftwp-ie9');
+                });
+            })(jQuery);
+        </script>
+        <![endif]-->
+		<link rel='stylesheet' id='prism-theme-style-css'  href='css/prism-hopscotch.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-toolbar-css'  href='css/prism-toolbar.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-line-numbers-css'  href='css/prism-line-numbers.min.css?ver=1.15.0' type='text/css' media='all' />
+<script type='text/javascript' src='js/jquery.min.js?ver=1.12.4'></script>
+<script type='text/javascript' src='js/katex.min.js?ver=0.10.0-beta'></script>
+<script type='text/javascript' src='js/bootstrap.min.js?ver=6.0'></script>
+<script type='text/javascript' src='js/loader.js?ver=6.0'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var q2w3_sidebar_options = [{"sidebar":"q2w3-default-sidebar","margin_top":10,"stop_id":"","screen_max_width":0,"screen_max_height":0,"width_inherit":false,"refresh_interval":1500,"window_load_hook":false,"disable_mo_api":false,"widgets":["geekdocs-fixed"]}];
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/q2w3-fixed-widget.min.js?ver=5.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var fixedtocOption = {"showAdminbar":"","inOutEffect":"zoom","isNestedList":"1","isColExpList":"1","showColExpIcon":"1","isAccordionList":"","isQuickMin":"1","isEscMin":"1","isEnterMax":"1","fixedMenu":"","scrollOffset":"10","fixedOffsetX":"10","fixedOffsetY":"0","fixedPosition":"middle-left","contentsFixedHeight":"","inPost":"","contentsFloatInPost":"left","contentsWidthInPost":"0","contentsHeightInPost":"","contentsColexpInitMobile":"1","inWidget":"","fixedWidget":"","triggerBorder":"medium","contentsBorder":"thin","triggerSize":"50","isClickableHeader":"","debug":"","postContentSelector":"#ftwp-postcontent","mobileMaxWidth":"768","disappearPoint":"content-bottom"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/ftoc.min.js?ver=3.1.24'></script>
+<script type='text/javascript' src='js/hoverIntent.min.js?ver=1.8.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var megamenu = {"timeout":"300","interval":"100"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/maxmegamenu.js?ver=2.9.7'></script>
+<script type='text/javascript' src='js/wp-embed.min.js?ver=4.9.20'></script>
+<script type='text/javascript' src='js/prism-core.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-autoloader.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-toolbar.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-line-numbers.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-show-language.min.js?ver=1.15.0'></script>
+		<script type="text/javascript">
+            (function ($) {
+                $(document).ready(function () {
+                    $(".katex.math.inline").each(function () {
+                        var parent = $(this).parent()[0];
+                        if (parent.localName !== "code") {
+                            var texTxt = $(this).text();
+                            var el = $(this).get(0);
+                            try {
+                                katex.render(texTxt, el);
+                            } catch (err) {
+                                $(this).html("<span class=\'err\'>" + err);
+                            }
+                        } else {
+                            $(this).parent().text($(this).parent().text());
+                        }
+                    });
+                    $(".katex.math.multi-line").each(function () {
+                        var texTxt = $(this).text();
+                        var el = $(this).get(0);
+                        try {
+                            katex.render(texTxt, el, {displayMode: true})
+                        } catch (err) {
+                            $(this).html("<span class=\'err\'>" + err)
+                        }
+                    });
+                })
+            })(jQuery);
+		</script>
+				<script type="text/javascript">
+			Prism.plugins.autoloader.languages_path = "http://cdn.bootcss.com/prism/1.15.0/components/"
+		</script>
+		</body></html>

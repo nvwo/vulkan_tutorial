@@ -1,0 +1,429 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=11,IE=10,IE=9,IE=8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-title" content="极客教程">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+<title>Vulkan 基本类型|极客教程</title><link rel='stylesheet' id='Katex-css'  href='css/katex.min.css?ver=0.10.0-beta' type='text/css' media='all' />
+<link rel='stylesheet' id='megamenu-css'   href='css/style.css?ver=e86352' type='text/css' media='all' />
+<link rel='stylesheet' id='dashicons-css'  href='css/dashicons.min.css?ver=4.9.20' type='text/css' media='all' />
+<link rel='stylesheet' id='_bootstrap-css'  href='css/bootstrap.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_fontawesome-css'  href='css/font-awesome.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_main-css'  href='css/main.css?ver=6.0' type='text/css' media='all' />        <style>
+            .eaa-clean {
+                padding: 0 !important;
+                border: none !important;
+            }            .eaa-ad.alignleft {
+                margin-right: 10px;
+            }            .eaa-ad.alignright {
+                margin-left: 10px;
+            }
+            .eaa-ad.debug{
+                background:peachpuff;
+                border:solid 2px #FF0000;
+                box-sizing: border-box;
+            }        </style>		
+<link rel='prev' title='装饰者模式' href='https://geek-docs.com/design-pattern/decorator-pattern/decorator-pattern-index.html' />
+<link rel='next' title='外观模式' href='https://geek-docs.com/design-pattern/facade-pattern/facade-pattern-index.html' />
+<link rel="canonical" href="vulkan-basic-types.html"/><meta name="keywords" content="Vulkan 基本类型,Vulkan教程,Vulkan">
+<meta name="description" content="Vulkan 基本类型，Vulkan 开发需要设计的类型非常多，本文介绍常用的 Vulkan 基本类型，主要包含设备、队列、命令缓冲、队列家族、渲染通，管线等，具体内容如下所示：         VulkanTypeName   Vulkan类型   说明       实例   VkInstance   用于存储Vulkan程序相关状态的软件结构，可以在逻辑上区分不同的Vulkan应用程序或者同一">
+<style>.container{max-width:1780px}a:hover, .site-navbar li:hover > a, .site-navbar li.active a:hover, .site-navbar a:hover, .search-on .site-navbar li.navto-search a, .topbar a:hover, .site-nav li.current-menu-item > a, .site-nav li.current-menu-parent > a, .site-search-form a:hover, .branding-primary .btn:hover, .title .more a:hover, .excerpt h2 a:hover, .excerpt .meta a:hover, .excerpt-minic h2 a:hover, .excerpt-minic .meta a:hover, .article-content .wp-caption:hover .wp-caption-text, .article-content a, .article-nav a:hover, .relates a:hover, .widget_links li a:hover, .widget_categories li a:hover, .widget_ui_comments strong, .widget_ui_posts li a:hover .text, .widget_ui_posts .nopic .text:hover , .widget_meta ul a:hover, .tagcloud a:hover, .textwidget a, .textwidget a:hover, .sign h3, #navs .item li a, .url, .url:hover, .excerpt h2 a:hover span, .widget_ui_posts a:hover .text span, .widget-navcontent .item-01 li a:hover span, .excerpt-minic h2 a:hover span, .relates a:hover span{color: #09a800;}.btn-primary, .label-primary, .branding-primary, .post-copyright:hover, .article-tags a, .pagination ul > .active > a, .pagination ul > .active > span, .pagenav .current, .widget_ui_tags .items a:hover, .sign .close-link, .pagemenu li.active a, .pageheader, .resetpasssteps li.active, #navs h2, #navs nav, .btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary, .tag-clouds a:hover{background-color: #09a800;}.btn-primary, .search-input:focus, #bdcs .bdcs-search-form-input:focus, #submit, .plinks ul li a:hover,.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary{border-color: #09a800;}.search-btn, .label-primary, #bdcs .bdcs-search-form-submit, #submit, .excerpt .cat{background-color: #09a800;}.excerpt .cat i{border-left-color:#09a800;}@media (max-width: 720px) {.site-navbar li.active a, .site-navbar li.active a:hover, .m-nav-show .m-icon-nav{color: #09a800;}}@media (max-width: 480px) {.pagination ul > li.next-page a{background-color:#09a800;}}.post-actions .action.action-like,.pagemenu li.current-menu-item > a{background-color: #09a800;}.catleader h1{border-left-color: #09a800;}.loop-product-filters ul .current-cat>a{color: #09a800;}.tblside-roll h3{background-color:#09a800 !important;}.tblside-roll li.active a{color:#09a800 !important;border-left-color:#09a800 !important;}.single .content, .category .content{margin-right: 300px !important;margin-left: 300px !important;}
+.tblside{position: relative;float: left;width: 300px;margin-left: -100%;overflow:hidden;}
+.tblside-roll{margin-bottom: 15px;}
+.tblside-ads{margin-bottom: 15px;}
+.tblside-ads h3{margin:0px 0px 15px 0px;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tblside-roll li{margin-bottom: 0;}
+.tblside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:break-word;}
+.tblside-roll li.cat-item{margin-left: 0;}
+.tblside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tblside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+.tbrside{position: relative;float: right;width: 300px;margin-left: -100%;overflow:hidden;}
+.tbrside-roll{margin-bottom: 15px;}
+.tbrside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tbrside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tbrside-roll li{margin-bottom: 0;}
+.tbrside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.tbrside-roll li.cat-item{margin-left: 0;}
+.tbrside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tbrside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+@media (max-width:1100px){
+	.single .content, .category .content{margin-left: 0 !important;margin-right: 0 !important;}
+	.tblside{display: none !important;}
+	.tbrside{display: none !important;}
+}</style><style type="text/css">/** Mega Menu CSS: fs **/</style>
+<link rel="shortcut icon" href="image/favicon.ico">
+<!--[if lt IE 9]><script src="https://geek-docs.com/wp-content/themes/dux/js/libs/html5.min.js"></script><![endif]-->
+</head>
+<body class="post-template-default single single-post postid-7303 single-format-standard m-excerpt-cat topbar-off comment-open site-layout-3 text-justify-on mega-menu-nav">
+<header class="header">
+	<div class="container">
+		<div class="logo"><a href="https://geek-docs.com/" title="极客教程 - 以工匠精神打磨精品教程"><img src="image/static/logo.png" alt="极客教程 - 以工匠精神打磨精品教程">极客教程</a></div>				<ul class="site-nav site-navbar">
+			<div id="mega-menu-wrap-nav" class="mega-menu-wrap"><div class="mega-menu-toggle"><div class="mega-toggle-blocks-left"></div><div class="mega-toggle-blocks-center"></div><div class="mega-toggle-blocks-right"><div class='mega-toggle-block mega-menu-toggle-animated-block mega-toggle-block-0' id='mega-toggle-block-0'><button aria-label="Toggle Menu" class="mega-toggle-animated mega-toggle-animated-slider" type="button" aria-expanded="false">
+                  <span class="mega-toggle-animated-box">
+                    <span class="mega-toggle-animated-inner"></span>
+                  </span>
+                </button></div></div></div><ul id="mega-menu-nav" class="mega-menu max-mega-menu mega-menu-horizontal mega-no-js" data-event="hover" data-effect="disabled" data-effect-speed="200" data-effect-mobile="disabled" data-effect-speed-mobile="0" data-mobile-force-width="false" data-second-click="go" data-document-click="collapse" data-vertical-behaviour="standard" data-breakpoint="768" data-unbind="true" data-mobile-state="collapse_all" data-hover-intent-timeout="300" data-hover-intent-interval="100"><li class='mega-menu-item mega-menu-item-type-custom mega-menu-item-object-custom mega-menu-item-has-children mega-align-bottom-left mega-menu-flyout mega-menu-item-18090' id='mega-menu-item-18090'><a class="mega-menu-link" aria-haspopup="true" aria-expanded="false" tabindex="0">基础编程<span class="mega-indicator"></span></a>						<i class="fa fa-bars m-icon-nav"></i>
+			</div>
+</header>
+<div class="site-search">
+	<div class="container">
+		<form method="get" class="site-search-form" action="https://geek-docs.com/" ><input class="search-input" name="s" type="text" placeholder="输入关键字" value=""><button class="search-btn" type="submit"><i class="fa fa-search"></i></button></form>	</div>
+</div>	<div class="breadcrumbs">
+		<div class="container">当前位置：<a href="/">极客教程</a> <small>></small> <a href="/">Vulkan</a> <small>></small> <a href="">Vulkan 教程</a> <small>></small> Vulkan 基本类型</div>
+	</div>
+<section class="container">
+	<div class="content-wrap">
+	<div class="content">
+				<header class="article-header">
+			<h1 class="article-title"><a href="vulkan-basic-types.html">Vulkan 基本类型</a></h1>
+		</header>
+				
+				<nav class="article-nav">
+			<div class="asb aub-post aub-post-01">
+
+</div>			<span class="article-nav-prev">上一篇 <a href="https://geek-docs.com/design-pattern/decorator-pattern/decorator-pattern-index.html" rel="prev">装饰者模式</a></span>
+			<span class="article-nav-next">下一篇 <a href="https://geek-docs.com/design-pattern/facade-pattern/facade-pattern-index.html" rel="next">外观模式</a></span>
+		</nav>
+				
+		<article class="article-content">
+			<p><strong>Vulkan 基本类型</strong>，Vulkan 开发需要设计的类型非常多，本文介绍常用的 Vulkan 基本类型，主要包含设备、队列、命令缓冲、队列家族、渲染通，管线等，具体内容如下所示：</p>
+<p><img src="image/img.geek-docs.com/vulkan/201911100840.jpg" alt="Vulkan 基本类型" title="Vulkan 基本类型" /></p>
+<table>
+<thead>
+<tr>
+<th>VulkanTypeName</th>
+<th>Vulkan类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>实例</td>
+<td><a href="vulkan-understand-instance.html">VkInstance</a></td>
+<td>用于存储Vulkan程序相关状态的软件结构，可以在逻辑上区分不同的Vulkan应用程序或者同一应用程序内部不同的Vulkan上下文</td>
+</tr>
+<tr>
+<td>物理设备</td>
+<td><a href="vulkan-physical-devices-and-queue-clusters.html">VkPhysicalDevice</a></td>
+<td>对系统中 GPU 硬件的抽象，每个 GPU 对应一个物理设备。另外，每个实例下可以有多个物理设备</td>
+</tr>
+<tr>
+<td>设备</td>
+<td><a href="vulkan-logical-devices-and-queues.html">VkDevice</a></td>
+<td>基于物理设备创建的逻辑设备，本质上是存储信息的软件结构，其中主要保留了与对应物理设备相关的资源。每个物理设备可以对应多个逻辑设备</td>
+</tr>
+<tr>
+<td>命令池</td>
+<td><a href="vulkan-command-buffers.html">VkCommandPool</a></td>
+<td>服务高效分配命令缓冲</td>
+</tr>
+<tr>
+<td>命令缓冲</td>
+<td><a href="vulkan-command-buffers.html">VkCommandBuffer</a></td>
+<td>用于记录组成绘制或计算任务的各个命令，在命令池中分配。若执行的是不变的绘制命令，可以对记录了命令的命令缓冲进行重用</td>
+</tr>
+<tr>
+<td>命令缓冲启动信息</td>
+<td><a href="vulkan-command-buffers.html">VkCommandBufferBeginInfo</a></td>
+<td>携带了命令缓冲启动时必要信息的对象</td>
+</tr>
+<tr>
+<td>命令缓冲提交信息</td>
+<td>VkSubmitInfo</td>
+<td>携带了命令缓冲提交给队列执行时必要信息的对象，包括需要等待的信息量数量、等待的信号量列表、命令缓冲数量、命令缓冲列表、触发的信号量数量触发的信号量列表等</td>
+</tr>
+<tr>
+<td>列表家族属性</td>
+<td>VkQueueFamilyProperties</td>
+<td>携带了特定队列家族属性信息的软件结构，包括家族中队列的数量、能力标志等。每一个队列家族中可能含有多个能力相近的队列，常用的队列家族主要有支持图形任务和计算任务的两大类</td>
+</tr>
+<tr>
+<td>队列</td>
+<td>VkQueue</td>
+<td>功能为接收提交的任务，将任务按序由所属GPU硬件依次执行</td>
+</tr>
+<tr>
+<td>格式</td>
+<td>VkFormat</td>
+<td>一个枚举类型，包含了Vulkan开发中用到的各种内存组织形式，如VK_FORMAT_R8G8B8A8_UNORM 就表示支持RGBA四个色彩通道，每个通道8个数据比特</td>
+</tr>
+<tr>
+<td>2D尺寸</td>
+<td>VkExtent2D</td>
+<td>用于记录2D尺寸的结构体，有width和height两个属性</td>
+</tr>
+<tr>
+<td>图像</td>
+<td><a href="vulkan-images-and-views.html">VkImage</a></td>
+<td>设备内存的一种使用模式，这种模式下对应的内存用于存储图像像素数据，其中存储的像素数据可能是来自于纹理图像也可能是来自于绘制任务的结果等</td>
+</tr>
+<tr>
+<td>图像视图</td>
+<td><a href="vulkan-images-and-views.html">VkImageView</a></td>
+<td>配合图像对象使用，其中携带了对应图像的类型、格式、色彩通道交换设置等方面的信息</td>
+</tr>
+<tr>
+<td>交换链</td>
+<td><a href="vulkan-rendering-and-presentation.html">VkSwapchainKHR</a></td>
+<td>将画面呈现到特定目标平台(如windows, Android, Linux等)窗体或者表面的机制，通过它可以提供多个用于呈现的图像。这些图像与目标平台相关，可以看作目标平台呈现用KHR表面的抽象接口。持续换帧呈现时交替使用其中的多个图形执行，避免用户看到绘制过程中的画面引起画面撕裂。一般情况下，交换链中至少有两个用于呈现的图像，有些设备中数量会更多</td>
+</tr>
+<tr>
+<td>帧缓冲</td>
+<td><a href="vulkan-framebuffers.html">VkFrameBuffer</a></td>
+<td>为绘制服务，其中可以包含颜色附件(用于记录一帧画面中各个像素的颜色值)、深度附件（用于记录一帧画面中各个像素的深度值）、模板附件（用于记录一帧画面中各个像素的模板值）等</td>
+</tr>
+<tr>
+<td>缓冲</td>
+<td>VkBuffer</td>
+<td>设备内存的一种使用模式，这种模式下对应的内存用于存储各种数据。比如：绘制用顶点信息数据、绘制用一致变量数据等</td>
+</tr>
+<tr>
+<td>缓冲描述信息</td>
+<td><a href="vulkan-descriptor-pool-and-sets.html">VkDescriptorBufferInfo</a></td>
+<td>携带了描述缓冲信息的结构体，包含对应缓冲、内存偏移量、范围等</td>
+</tr>
+<tr>
+<td>渲染通道</td>
+<td><a href="vulkan-render-passes.html">VkRenderPass</a></td>
+<td>其中包含了一次绘制任务需要的各方面信息，诸如颜色附件、深度附件情况，子通道列表、子通道相互依赖信息等，用于向驱动描述绘制工作的结构、过程。一般来说，每个渲染通道从开始到结束将产生一帧完成的画面</td>
+</tr>
+<tr>
+<td>清除内容</td>
+<td>VlClearValue</td>
+<td>包含了每次绘制前清除帧缓冲所用数据的相关值，主要有清除用颜色值，深度值、模板值</td>
+</tr>
+<tr>
+<td>渲染通道启动信息</td>
+<td>VkRenderPassBeginInfo</td>
+<td>携带了启动渲染通道时所需的信息，包括对应的渲染通道、渲染区域的位置及尺寸、绘制前的清除数据值等</td>
+</tr>
+<tr>
+<td>渲染子通道描述</td>
+<td>VkSubpassDescription</td>
+<td>一个渲染通道由多个子通道组成，至少需要一个子通道。每个子通道用一个VkSubpassDescription实例描述，其中包含了此子通道的输入附件，颜色附件，深度附件等方面的信息</td>
+</tr>
+<tr>
+<td>描述集布局</td>
+<td>VkDescriptionSetLayout</td>
+<td>服务于描述集，给出布局接口。通俗讲就是给出着色器中包含了哪些一致变量、分别是什么类型、绑定编号是什么、对应于哪个管线阶段（比如顶点着色器、片源着色器）等</td>
+</tr>
+<tr>
+<td>描述集</td>
+<td><a href="vulkan-descriptor-pool-and-sets.html">VkDescriptorSet</a></td>
+<td>用于绘制前更新着色器所需的一致变量等</td>
+</tr>
+<tr>
+<td>写入描述集</td>
+<td><a href="vulkan-descriptor-pool-and-sets.html">VkWriteDescriptorSet</a></td>
+<td>用于绘制前更新着色器所需的一致变量等</td>
+</tr>
+<tr>
+<td>描述集池</td>
+<td><a href="vulkan-descriptor-pool-and-sets.html">VkDescriptorPool</a></td>
+<td>用于高效地分配描述集</td>
+</tr>
+<tr>
+<td>管线布局</td>
+<td><a href="vulkan-render-passes.html">VkPipelineLayout</a></td>
+<td>描述管线整体布局，包括哪些推送常量、有哪些描述集等</td>
+</tr>
+<tr>
+<td>管线</td>
+<td><a href="vulkan-integration-pipeline.html">VkPipeline</a></td>
+<td>包含了执行指定绘制工作对应管线的各方面信息、诸如管线布局、顶点数据输入情况、图元组装设置、光栅化设置、混合设置、视口于剪裁设置、深度及模板测试设置、多重采样设置等</td>
+</tr>
+<tr>
+<td>着色器阶段创建信息</td>
+<td><a href="vulkan-shader-modules.html">VkPipelineShaderStageCreateInfo</a></td>
+<td>携带了单个着色器阶段信息的对象，包括着色器的SPIR-V模板、着色器主方法名称、着色器对应阶段（比如顶点着色器、片元着色器、几何着色器、曲面细分着色器）等</td>
+</tr>
+<tr>
+<td>顶点输入绑定描述</td>
+<td><a href="vertex-input-description.html">VkVertexInputBindingDescription</a></td>
+<td>用于描述管线的顶点数据输入情况，包括绑定点编号，数据数据频率(比如每顶点一套数据)、数据间隔等</td>
+</tr>
+<tr>
+<td>顶点输入属性描述</td>
+<td><a href="vertex-input-description.html">VkVertexInputAttributeDescription</a></td>
+<td>描述顶点输入的某项数据信息（比如顶点位置、顶点颜色），包括绑定点编号、位置编号、数据格式、偏移量等</td>
+</tr>
+<tr>
+<td>管线缓冲</td>
+<td><a href="vulkan-integration-pipeline.html">VkPipelineCache</a></td>
+<td>为高效地创建管线提供支持</td>
+</tr>
+<tr>
+<td>格式属性</td>
+<td>VkFormatProperties</td>
+<td>用于存储执行格式类型（比如 VK_FORMAT_D16_UNORM）的格式属性，包括线性瓦片特征标志、最优化瓦片特征标志、缓冲特种标志等</td>
+</tr>
+<tr>
+<td>物理设备内存属性</td>
+<td>VkPhysicalDeviceMemoryProperties</td>
+<td>用于存储获取的基于指定GPU的设备内存属性，包括内存类型数量、内存类型列表、内存堆数量、内存堆列表等</td>
+</tr>
+<tr>
+<td>设备内存</td>
+<td>VkDeviceMemory</td>
+<td>设备内存的逻辑抽象，前面提到的缓冲(VuBuffer)、图形(VkImage)都需要绑定设备内存才能正常工作</td>
+</tr>
+<tr>
+<td>信号量</td>
+<td>VkSemaphore</td>
+<td>用于一个设备(GPU)内部相同或不同队列并发执行任务时的同步工作，一般与方法VkQueueSubmit配合使用，以确保通过VkQueueSubmit方法提交的任务在指定信号量未触发前阻塞直至信号量触发后才执行。要特别注意的是，若有多个提交的任务同时等待同一个信号量触发，则此信号量的触发仅仅会被一个等待的任务接收到，其他等待的任务还将继续等待。这里的“同步”指的是并发执行时解决冲突的一种策略，有兴趣的读者可以进一步查阅相关资料</td>
+</tr>
+<tr>
+<td>栅栏</td>
+<td>VkFence</td>
+<td>用于主机和设备之间的同步，通俗地讲就是用于CPU和GPU并发执行任务时的同步</td>
+</tr>
+<tr>
+<td>KHR表面</td>
+<td>VkSurfaceKHR</td>
+<td>此类对象服务于帧画面的呈现</td>
+</tr>
+<tr>
+<td>KHR表面能力</td>
+<td>VkSurfaceCapabilitiesKHR</td>
+<td>携带了用于呈现画面的表面相关呈现能力的信息，比如画面尺寸范围、交换链中的图像数量、是否支持屏幕交换等</td>
+</tr>
+<tr>
+<td>呈现信息</td>
+<td>VkPresentInfoKHR</td>
+<td>携带了执行呈现时所需的一些信息，包括需要等待的信号量数量、信号量列表、交换链的数量、交换链列表、此次呈现的图像在交换链中的索引等</td>
+</tr>
+</tbody>
+</table>
+<p><strong>极客教程相关文章推荐，欢迎阅读！</strong><br />
+<a href="https://geek-docs.com/vulkan/vulkanrt/vulkan-runtime-libraries.html">Vulkan RunTime Libraries</a><br />
+<a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a><br />
+<a href="what-is-vulkan.html">什么是 Vulkan</a><br />
+<a href="vulkan-and-opengl.html">Vulkan和OpenGL区别</a></p>
+</p>		</article>
+		<div class="asb aub-post aub-post-02">
+						            <div class="post-actions">
+            	<a href="javascript:;" etap="like" class="post-like action action-like" data-pid="7303"><i class="fa fa-thumbs-o-up"></i>赞(<span>6</span>)</a>            	            	            </div>
+        				
+					<div class="action-share"></div>
+		
+		<div class="article-tags"></div>
+		
+		
+		<div class="relates relates-thumb"><div class="title"><h3>猜你喜欢</h3></div><ul><li><a href="support-vulkan-game.html"><img data-src="image/img.geek-docs.com/vulkan/201911161129.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的游戏|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li><li><a href="support-vulkan-gpu.html"><img data-src="image/img.geek-docs.com/vulkan/201911112317.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的GPU|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="vulkan-visual-studio-environment-configuration.html"><img data-src="image/img.geek-docs.com/vulkan/201910191450.png?x-oss-process=style/4-3-thumb" alt="Vulkan Visual Studio环境配置|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li><li><a href="vulkan-and-opengl.html"><img data-src="image/img.geek-docs.com/vulkan/201910072026.jpg?x-oss-process=style/4-3-thumb" alt="Vulkan和OpenGL区别|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-and-opengl.html">Vulkan和OpenGL区别</a></li></ul></div>				<div class="title" id="comments">
+	<h3>评论 <small>抢沙发</small></h3>
+</div>
+<div id="respond" class="no_webshot">
+		
+	<form action="https://geek-docs.com/wp-comments-post.php" method="post" id="commentform">
+		<div class="comt">
+			<div class="comt-title">
+				<img alt='' data-src='https://secure.gravatar.com/avatar/?s=50&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/?s=100&#038;d=mm&#038;r=g 2x' class='avatar avatar-50 photo avatar-default' height='50' width='50' />				<p><a rel="nofollow" id="cancel-comment-reply-link" href="javascript:;">取消</a></p>
+			</div>
+			<div class="comt-box">
+				<textarea placeholder="你的评论可以一针见血" class="input-block-level comt-area" name="comment" id="comment" cols="100%" rows="3" tabindex="1" onkeydown="if(event.ctrlKey&amp;&amp;event.keyCode==13){document.getElementById('submit').click();return false};"></textarea>
+				<div class="comt-ctrl">
+					<div class="comt-tips"><input type='hidden' name='comment_post_ID' value='7303' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+<label for="comment_mail_notify" class="checkbox inline hide" style="padding-top:0"><input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" value="comment_mail_notify" checked="checked"/>有人回复时邮件通知我</label></div>
+					<button type="submit" name="submit" id="submit" tabindex="5">提交评论</button>
+					<!-- <span data-type="comment-insert-smilie" class="muted comt-smilie"><i class="icon-thumbs-up icon12"></i> 表情</span> -->
+				</div>
+			</div>												<div class="comt-comterinfo" id="comment-author-info" >
+						<ul>
+							<li class="form-inline"><label class="hide" for="author">昵称</label><input class="ipt" type="text" name="author" id="author" value="" tabindex="2" placeholder="昵称"><span class="text-muted">昵称 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="email">邮箱</label><input class="ipt" type="text" name="email" id="email" value="" tabindex="3" placeholder="邮箱"><span class="text-muted">邮箱 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="url">网址</label><input class="ipt" type="text" name="url" id="url" value="" tabindex="4" placeholder="网址"><span class="text-muted">网址</span></li>
+						</ul>
+					</div>
+									</div>	</form>
+	</div>
+	</div>
+	</div></div>
+    <div class="tblside">
+    <div class="tblside-roll">
+		<h3>Vulkan 教程</h3><ul><li><a href="index.html">Vulkan 教程</a></li><li><a href="what-is-vulkan.html">什么是 Vulkan</a></li><li><a href="vulkan-development-environment-built-on-windows.html">Vulkan 开发环境搭建之Windows</a></li><li><a href="vulkan-understand-instance.html">Vulkan 创建Vulkan实例</a></li><li><a href="vulkan-physical-devices-and-queue-clusters.html">Vulkan 物理设备与队列</a></li><li><a href="vulkan-application-framework-prototype.html">Vulkan 应用程序框架原型</a></li><li><a href="understand-validation-layers.html">Vulkan 验证层</a></li><li><a href="vulkan-logical-devices-and-queues.html">Vulkan 逻辑设备与队列</a></li><li><a href="vulkan-exchange-of-chain.html">Vulkan 交换链</a></li><li><a href="vulkan-window-surface.html">Vulkan Window Surface</a></li><li><a href="vulkan-graphic-pipeline.html">Vulkan 图形管线</a></li><li><a href="vulkan-images-and-views.html">Vulkan 图像与视图</a></li><li><a href="vulkan-shader-modules.html">Vulkan 着色器模块</a></li><li><a href="vulkan-fixed-functions.html">Vulkan 固有功能</a></li><li><a href="vulkan-framebuffers.html">Vulkan 帧缓冲区</a></li><li><a href="vulkan-integration-pipeline.html">Vulkan 集成管线</a></li><li><a href="vulkan-render-passes.html">Vulkan 渲染通道</a></li><li><a href="vulkan-command-buffers.html">Vulkan 命令缓冲区</a></li><li><a href="vulkan-rendering-and-presentation.html">Vulkan 渲染和显示</a></li><li><a href="vulkan-reconstructed-commutative-chain.html">Vulkan 重构交换链</a></li><li><a href="vertex-input-description.html">Vulkan 顶点输入</a></li><li><a href="vertex-buffer-creation.html">Vulkan 创建顶点缓冲区</a></li><li><a href="vulkan-staging-buffer.html">Vulkan 临时缓冲区</a></li><li><a href="vulkan-index-buffer.html">Vulkan 索引缓冲区</a></li><li><a href="vulkan-descriptor-layout-and-buffer.html">Vulkan 描述符布局和缓冲区</a></li><li><a href="vulkan-descriptor-pool-and-sets.html">Vulkan 描述符池和集合</a></li><li><a href="vulkan-images.html">Vulkan 图像(Images)</a></li><li><a href="vulkan-image-view-and-sampler.html">Vulkan 图像视图和采样器</a></li><li><a href="combined-image-sampler.html">Vulkan 组合图像取样器</a></li><li><a href="vulkan-depth-buffering.html">Vulkan 深度缓冲区</a></li><li><a href="loading-models.html">Vulkan 加载模型</a></li><li><a href="vulkan-generating-mipmaps.html">Vulkan 生成贴图(mipmap)</a></li><li><a href="vulkan-multisampling.html">Vulkan 多重采样(Multisampling)</a></li><li><a href="vulkan-and-opengl.html">Vulkan和OpenGL区别</a></li><li><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li><li class="active"><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li></ul>    </div>
+	  		<div class="widget widget_recent_entries" id="recent-posts-3">		<h3>最新文章</h3>	
+					
+		</div></div>
+<div class="tbrside">
+<nav>
+<div id="geekdocs-fixed"></div>
+	
+</nav>
+</div>
+</section><footer class="footer">
+	<div class="container">
+							</div>
+</footer><div class="rollbar rollbar-rb"><ul><li class="rollbar-totop"><a href="javascript:(jsui.scrollTo());"><i class="fa fa-angle-up"></i><span>回顶</span></a><h6>回顶部<i></i></h6></li></ul></div>
+<script>
+window.jsui={
+	www: 'https://geek-docs.com',
+	uri: 'https://geek-docs.com/wp-content/themes/dux',
+	ver: '6.0',
+	roll: ["1","2","3"],
+	ajaxpager: '5',
+	url_rp: 'https://geek-docs.com/'
+};
+</script>
+<link rel='stylesheet' id='prism-theme-style-css'  href='css/prism-hopscotch.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-toolbar-css'  href='css/prism-toolbar.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-line-numbers-css'  href='css/prism-line-numbers.min.css?ver=1.15.0' type='text/css' media='all' />
+<script type='text/javascript' src='js/jquery.min.js?ver=1.12.4'></script>
+<script type='text/javascript' src='js/katex.min.js?ver=0.10.0-beta'></script>
+<script type='text/javascript' src='js/bootstrap.min.js?ver=6.0'></script>
+<script type='text/javascript' src='js/loader.js?ver=6.0'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var q2w3_sidebar_options = [{"sidebar":"q2w3-default-sidebar","margin_top":10,"stop_id":"","screen_max_width":0,"screen_max_height":0,"width_inherit":false,"refresh_interval":1500,"window_load_hook":false,"disable_mo_api":false,"widgets":["geekdocs-fixed"]}];
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/q2w3-fixed-widget.min.js?ver=5.1'></script>
+<script type='text/javascript' src='js/hoverIntent.min.js?ver=1.8.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var megamenu = {"timeout":"300","interval":"100"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/maxmegamenu.js?ver=2.9.7'></script>
+<script type='text/javascript' src='js/wp-embed.min.js?ver=4.9.20'></script>
+<script type='text/javascript' src='js/prism-core.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-autoloader.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-toolbar.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-line-numbers.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-show-language.min.js?ver=1.15.0'></script>
+		<script type="text/javascript">
+            (function ($) {
+                $(document).ready(function () {
+                    $(".katex.math.inline").each(function () {
+                        var parent = $(this).parent()[0];
+                        if (parent.localName !== "code") {
+                            var texTxt = $(this).text();
+                            var el = $(this).get(0);
+                            try {
+                                katex.render(texTxt, el);
+                            } catch (err) {
+                                $(this).html("<span class=\'err\'>" + err);
+                            }
+                        } else {
+                            $(this).parent().text($(this).parent().text());
+                        }
+                    });
+                    $(".katex.math.multi-line").each(function () {
+                        var texTxt = $(this).text();
+                        var el = $(this).get(0);
+                        try {
+                            katex.render(texTxt, el, {displayMode: true})
+                        } catch (err) {
+                            $(this).html("<span class=\'err\'>" + err)
+                        }
+                    });
+                })
+            })(jQuery);
+		</script>
+				<script type="text/javascript">
+			Prism.plugins.autoloader.languages_path = "http://cdn.bootcss.com/prism/1.15.0/components/"
+		</script>
+		</body></html>

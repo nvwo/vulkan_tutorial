@@ -1,0 +1,517 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=11,IE=10,IE=9,IE=8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-title" content="极客教程">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+<title>Vulkan 验证层|极客教程</title><link rel='stylesheet' id='Katex-css'  href='css/katex.min.css?ver=0.10.0-beta' type='text/css' media='all' />
+<link rel='stylesheet' id='megamenu-css'   href='css/style.css?ver=e86352' type='text/css' media='all' />
+<link rel='stylesheet' id='dashicons-css'  href='css/dashicons.min.css?ver=4.9.20' type='text/css' media='all' />
+<link rel='stylesheet' id='_bootstrap-css'  href='css/bootstrap.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_fontawesome-css'  href='css/font-awesome.min.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='_main-css'  href='css/main.css?ver=6.0' type='text/css' media='all' />
+<link rel='stylesheet' id='fixedtoc-style-css'  href='css/ftoc.min.css?ver=3.1.24' type='text/css' media='all' />
+<style id='fixedtoc-style-inline-css' type='text/css'>
+#ftwp-container.ftwp-wrap #ftwp-contents { width: 255px; height: auto; } #ftwp-container.ftwp-wrap #ftwp-trigger { width: 50px; height: 50px; font-size: 30px; } #ftwp-container #ftwp-trigger.ftwp-border-medium { font-size: 29px; } #ftwp-container.ftwp-wrap #ftwp-header { font-size: 16px; font-family: inherit; } #ftwp-container.ftwp-wrap #ftwp-header-title { font-weight: bold; } #ftwp-container.ftwp-wrap #ftwp-list { font-size: 14px; font-family: inherit; } #ftwp-container #ftwp-list.ftwp-liststyle-decimal .ftwp-anchor::before { font-size: 14px; } #ftwp-container #ftwp-list.ftwp-strong-first>.ftwp-item>.ftwp-anchor .ftwp-text { font-size: 15.4px; } #ftwp-container #ftwp-list.ftwp-strong-first.ftwp-liststyle-decimal>.ftwp-item>.ftwp-anchor::before { font-size: 15.4px; } #ftwp-container.ftwp-wrap #ftwp-trigger { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-trigger { border-color: rgba(51,51,51,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents { border-color: rgba(51,51,51,0.95); } #ftwp-container.ftwp-wrap #ftwp-header { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents:hover #ftwp-header { background: #f3f3f3; } #ftwp-container.ftwp-wrap #ftwp-list { color: #333; background: rgba(243,243,243,0.95); } #ftwp-container.ftwp-wrap #ftwp-contents:hover #ftwp-list { background: #f3f3f3; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-anchor:hover { color: #00A368; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-anchor:focus, #ftwp-container.ftwp-wrap #ftwp-list .ftwp-active, #ftwp-container.ftwp-wrap #ftwp-list .ftwp-active:hover { color: #fff; } #ftwp-container.ftwp-wrap #ftwp-list .ftwp-text::before { background: rgba(9,168,0,0.95); } .ftwp-heading-target::before { background: rgba(9,168,0,0.95); }
+</style>        <style>
+            .eaa-clean {
+                padding: 0 !important;
+                border: none !important;
+            }            .eaa-ad.alignleft {
+                margin-right: 10px;
+            }            .eaa-ad.alignright {
+                margin-left: 10px;
+            }
+            .eaa-ad.debug{
+                background:peachpuff;
+                border:solid 2px #FF0000;
+                box-sizing: border-box;
+            }        </style>		
+<link rel='prev' title='Vulkan 应用程序框架原型' href='vulkan-application-framework-prototype.html' />
+<link rel='next' title='Vulkan 逻辑设备与队列' href='vulkan-logical-devices-and-queues.html' />
+<link rel="canonical" href="understand-validation-layers.html"/><meta name="keywords" content="Vulkan Validation layers">
+<meta name="description" content="Vulkan 验证层，Vulkan API的设计核心是尽量最小化驱动程序的额外开销，所谓额外开销更多的是指向渲染以外的运算。其中一个具体的表现就是默认条件下，Vulkan API的错误检查的支持非常有限。即使遍历不正确的值或者将需要的参数传递为空指针，也不会有明确的处理逻辑，并且直接导致崩溃或者未定义的异常行为。之所以这样，是因为Vulkan要求每一个步骤定义都非常明确，导致很容易造成小错误，例如">
+<style>.container{max-width:1780px}a:hover, .site-navbar li:hover > a, .site-navbar li.active a:hover, .site-navbar a:hover, .search-on .site-navbar li.navto-search a, .topbar a:hover, .site-nav li.current-menu-item > a, .site-nav li.current-menu-parent > a, .site-search-form a:hover, .branding-primary .btn:hover, .title .more a:hover, .excerpt h2 a:hover, .excerpt .meta a:hover, .excerpt-minic h2 a:hover, .excerpt-minic .meta a:hover, .article-content .wp-caption:hover .wp-caption-text, .article-content a, .article-nav a:hover, .relates a:hover, .widget_links li a:hover, .widget_categories li a:hover, .widget_ui_comments strong, .widget_ui_posts li a:hover .text, .widget_ui_posts .nopic .text:hover , .widget_meta ul a:hover, .tagcloud a:hover, .textwidget a, .textwidget a:hover, .sign h3, #navs .item li a, .url, .url:hover, .excerpt h2 a:hover span, .widget_ui_posts a:hover .text span, .widget-navcontent .item-01 li a:hover span, .excerpt-minic h2 a:hover span, .relates a:hover span{color: #09a800;}.btn-primary, .label-primary, .branding-primary, .post-copyright:hover, .article-tags a, .pagination ul > .active > a, .pagination ul > .active > span, .pagenav .current, .widget_ui_tags .items a:hover, .sign .close-link, .pagemenu li.active a, .pageheader, .resetpasssteps li.active, #navs h2, #navs nav, .btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary, .tag-clouds a:hover{background-color: #09a800;}.btn-primary, .search-input:focus, #bdcs .bdcs-search-form-input:focus, #submit, .plinks ul li a:hover,.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary{border-color: #09a800;}.search-btn, .label-primary, #bdcs .bdcs-search-form-submit, #submit, .excerpt .cat{background-color: #09a800;}.excerpt .cat i{border-left-color:#09a800;}@media (max-width: 720px) {.site-navbar li.active a, .site-navbar li.active a:hover, .m-nav-show .m-icon-nav{color: #09a800;}}@media (max-width: 480px) {.pagination ul > li.next-page a{background-color:#09a800;}}.post-actions .action.action-like,.pagemenu li.current-menu-item > a{background-color: #09a800;}.catleader h1{border-left-color: #09a800;}.loop-product-filters ul .current-cat>a{color: #09a800;}.tblside-roll h3{background-color:#09a800 !important;}.tblside-roll li.active a{color:#09a800 !important;border-left-color:#09a800 !important;}.single .content, .category .content{margin-right: 300px !important;margin-left: 300px !important;}
+.tblside{position: relative;float: left;width: 300px;margin-left: -100%;overflow:hidden;}
+.tblside-roll{margin-bottom: 15px;}
+.tblside-ads{margin-bottom: 15px;}
+.tblside-ads h3{margin:0px 0px 15px 0px;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tblside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tblside-roll li{margin-bottom: 0;}
+.tblside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:break-word;}
+.tblside-roll li.cat-item{margin-left: 0;}
+.tblside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tblside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+.tbrside{position: relative;float: right;width: 300px;margin-left: -100%;overflow:hidden;}
+.tbrside-roll{margin-bottom: 15px;}
+.tbrside-roll h3{margin: 0;padding:18px 20px;font-size: 14px;font-weight: bold;background-color:#09a800;color:#fff;border-radius: 4px 4px 0 0;}
+.tbrside-roll ul{border-left: 1px solid #EAEAEA;border-right: 1px solid #EAEAEA;}
+.tbrside-roll li{margin-bottom: 0;}
+.tbrside-roll li a{border-bottom: 1px solid #EAEAEA;display:block;background-color:#fff;padding:14px 20px;overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.tbrside-roll li.cat-item{margin-left: 0;}
+.tbrside-roll li.active a{color: #09a800;border-left:5px solid #09a800;font-weight: bold;padding-left:15px;}
+.tbrside-roll li:last-child a{border-radius:0 0 4px 4px;overflow:hidden}
+@media (max-width:1100px){
+	.single .content, .category .content{margin-left: 0 !important;margin-right: 0 !important;}
+	.tblside{display: none !important;}
+	.tbrside{display: none !important;}
+}</style><style type="text/css">/** Mega Menu CSS: fs **/</style>
+<link rel="shortcut icon" href="image/favicon.ico">
+<!--[if lt IE 9]><script src="https://geek-docs.com/wp-content/themes/dux/js/libs/html5.min.js"></script><![endif]-->
+</head>
+<body class="post-template-default single single-post postid-3160 single-format-standard m-excerpt-cat topbar-off comment-open site-layout-3 text-justify-on is-phone mega-menu-nav has-ftoc">
+<header class="header">
+	<div class="container">
+		<div class="logo"><a href="https://geek-docs.com/" title="极客教程 - 以工匠精神打磨精品教程"><img src="image/static/logo.png" alt="极客教程 - 以工匠精神打磨精品教程">极客教程</a></div>				<ul class="site-nav site-navbar">
+			<div id="mega-menu-wrap-nav" class="mega-menu-wrap"><div class="mega-menu-toggle"><div class="mega-toggle-blocks-left"></div><div class="mega-toggle-blocks-center"></div><div class="mega-toggle-blocks-right"><div class='mega-toggle-block mega-menu-toggle-animated-block mega-toggle-block-0' id='mega-toggle-block-0'><button aria-label="Toggle Menu" class="mega-toggle-animated mega-toggle-animated-slider" type="button" aria-expanded="false">
+                  <span class="mega-toggle-animated-box">
+                    <span class="mega-toggle-animated-inner"></span>
+                  </span>
+                </button></div></div></div><ul id="mega-menu-nav" class="mega-menu max-mega-menu mega-menu-horizontal mega-no-js" data-event="hover" data-effect="disabled" data-effect-speed="200" data-effect-mobile="disabled" data-effect-speed-mobile="0" data-mobile-force-width="false" data-second-click="go" data-document-click="collapse" data-vertical-behaviour="standard" data-breakpoint="768" data-unbind="true" data-mobile-state="collapse_all" data-hover-intent-timeout="300" data-hover-intent-interval="100"><li class='mega-menu-item mega-menu-item-type-custom mega-menu-item-object-custom mega-menu-item-has-children mega-align-bottom-left mega-menu-flyout mega-menu-item-18090' id='mega-menu-item-18090'><a class="mega-menu-link" aria-haspopup="true" aria-expanded="false" tabindex="0">基础编程<span class="mega-indicator"></span></a>						<i class="fa fa-bars m-icon-nav"></i>
+			</div>
+</header>
+<div class="site-search">
+	<div class="container">
+		<form method="get" class="site-search-form" action="https://geek-docs.com/" ><input class="search-input" name="s" type="text" placeholder="输入关键字" value=""><button class="search-btn" type="submit"><i class="fa fa-search"></i></button></form>	</div>
+</div>	<div class="breadcrumbs">
+		<div class="container">当前位置：<a href="/">极客教程</a> <small>></small> <a href="/">Vulkan</a> <small>></small> <a href="">Vulkan 教程</a> <small>></small> Vulkan 验证层</div>
+	</div>
+<section class="container">
+	<div class="content-wrap">
+	<div class="content">
+				<header class="article-header">
+			<h1 class="article-title"><a href="understand-validation-layers.html">Vulkan 验证层</a></h1>
+		</header>
+				
+				<nav class="article-nav">
+			<div class="asb asb-m aub-post aub-post-01">
+
+</div>			<span class="article-nav-prev">上一篇 <a href="vulkan-application-framework-prototype.html" rel="prev">Vulkan 应用程序框架原型</a></span>
+			<span class="article-nav-next">下一篇 <a href="vulkan-logical-devices-and-queues.html" rel="next">Vulkan 逻辑设备与队列</a></span>
+		</nav>
+				
+		<article class="article-content">
+			<div id="ftwp-container" class="ftwp-wrap ftwp-hidden-state ftwp-minimize ftwp-middle-left"><button type="button" id="ftwp-trigger" class="ftwp-shape-round ftwp-border-medium" title="单击以最大化目录"><span class="ftwp-trigger-icon ftwp-icon-menu"></span></button><nav id="ftwp-contents" class="ftwp-shape-round ftwp-border-thin"><header id="ftwp-header"><span id="ftwp-header-control" class="ftwp-icon-menu"></span><button type="button" id="ftwp-header-minimize" class="ftwp-icon-minimize" aria-labelledby="ftwp-header-title" aria-label="Expand or collapse"></button><h3 id="ftwp-header-title">文章目录</h3></header><ol id="ftwp-list" class="ftwp-liststyle-decimal ftwp-effect-bounce-to-right ftwp-list-nest ftwp-strong-first ftwp-colexp ftwp-colexp-icon"><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-1"><span class="ftwp-text">什么是验证层</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-2"><span class="ftwp-text">使用验证层</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-3"><span class="ftwp-text">消息回调</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-4"><span class="ftwp-text">配置</span></a></li><li class="ftwp-item"><a class="ftwp-anchor" href="#ftoc-heading-5"><span class="ftwp-text">源代码</span></a></li></ol></nav></div>
+<div id="ftwp-postcontent"><p><strong>Vulkan 验证层</strong>，<code>Vulkan API</code>的设计核心是尽量最小化驱动程序的额外开销，所谓额外开销更多的是指向渲染以外的运算。其中一个具体的表现就是默认条件下，<code>Vulkan API</code>的错误检查的支持非常有限。即使遍历不正确的值或者将需要的参数传递为空指针，也不会有明确的处理逻辑，并且直接导致崩溃或者未定义的异常行为。之所以这样，是因为<code>Vulkan</code>要求每一个步骤定义都非常明确，导致很容易造成小错误，例如使用新的<code>GPU</code>功能，但是忘记了逻辑设备创建时请求它。</p>
+<h2 id="ftoc-heading-1" class="ftwp-heading">什么是验证层</h2>
+<p>但是，这并不意味着这些检查不能添加到具体的API中。<code>Vulkan</code>推出了一个优化的系统，这个系统称之为<code>Validation layers</code>。<code>Validation layers</code>是可选组件，可以挂载到<code>Vulkan</code>函数中调用，以回调其他的操作。<code>Validation layers</code>的常见操作情景有:</p>
+<ul>
+<li>根据规范检查参数数值，最终确认是否存与预期不符的情况</li>
+<li>跟踪对象的创建和销毁，以查找是否存在资源的泄漏</li>
+<li>跟踪线程的调用链，确认线程执行过程中的安全性</li>
+<li>将每次函数调用所使用的参数记录到标准的输出中，进行初步的Vulkan概要分析</li>
+</ul>
+<p>以下示例代码是一个函数中应用<code>Validation layers</code>的具体实现:</p>
+<pre><code class="language-cpp  line-numbers">VkResult vkCreateInstance(
+    const VkInstanceCreateInfo* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkInstance* instance) {    if (pCreateInfo == nullptr || instance == nullptr) {
+        log("Null pointer passed to required parameter!");
+        return VK_ERROR_INITIALIZATION_FAILED;
+    }    return real_vkCreateInstance(pCreateInfo, pAllocator, instance);
+}
+</code></pre>
+<p>这些<code>Validation layers</code>可以随意的堆叠到Vulkan驱动程序中，如果有必要，你甚至可以包含所有的<code>debug</code>功能。可以简单的开启<code>Validation layers</code>的<code>debug</code>版本，并在<code>release</code>版本中完全禁止，从而为您提供理想的两个版本。</p>
+<p><code>Vulkan</code>没有内置任何<code>Validation layers</code>，但是<code>LunarG Vulkan SDK</code>提供了一系列layers用于检测常规的错误异常。他们是完全<strong>OpenSource</strong>的，所以你可以根据你需要的检测需求应用具体的<code>Validation layers</code>。使用<code>Validation layers</code>是最佳的方式避免你的应用程序在发生未知的行为时收到影响，甚至中断。</p>
+<p><code>Vulkan</code>只能使用已经安装到系统上下文的<code>Validation layers</code>。例如，<code>LunarG Validation layers</code>仅在安装了<code>Vulkan SDK</code>的PC上可用。</p>
+<p>在之前的<code>Vulkan</code>版本中有两种不同类型的<code>Validation layers</code>，分别应用于 <code>instance</code> 和 <code>device specific</code>。这个设计理念希望<code>instance</code>层只会验证与全局<code>Vulkan</code>对象(例如<code>Instance</code>)有关的调用，而<code>device specific</code>层只是验证与特定GPU相关的调用。<code>device specific</code>层已经被废弃，这意味着<code>instance</code>层的<code>Validation layers</code>将应用所有的<code>Vulkan</code>调用。出于兼容性的考虑，规范文档仍然建议在<code>device specific</code>层开启<code>Validation layers</code>，这在某些情景下是有必要的。我们将在<code>logic device</code>层指定与<code>instance</code>相同的<code>Validation layers</code>,稍后会看到。</p>
+<h2 id="ftoc-heading-2" class="ftwp-heading">使用验证层</h2>
+<p>在本节中，我们将介绍如何启用<code>Vulkan SDK</code>提供的标准诊断层。就像扩展一样，需要通过指定具体名称来开启<code>validation layers</code>。SDK通过请求<strong>VK_LAYER_LUNARG_standard_validaction</strong>层，来隐式的开启有所关于诊断<code>layers</code>，从而避免明确的指定所有的明确的诊断层。</p>
+<p>首先在程序中添加两个配置变量来指定要启用的<code>layers</code>以及是否开启它们。我们选择基于程序是否在调试模式下进行编译。<strong>NDEBUG</strong>是C++标准宏定义，代表“不调试”。</p>
+<pre><code class="language-cpp  line-numbers">const int WIDTH = 800;
+const int HEIGHT = 600;const std::vector&lt;const char*&gt; validationLayers = {
+    "VK_LAYER_LUNARG_standard_validation"
+};#ifdef NDEBUG
+    const bool enableValidationLayers = false;
+#else
+    const bool enableValidationLayers = true;
+#endif
+</code></pre>
+<p>我们将添加一个新的函数<code>checkValidationLayerSupport</code>,检测所有请求的<code>layers</code>是否可用。首先使用<strong>vkEnumerateInstanceLayerProperties</strong>函数列出所有可用的层。其用法与<strong>vkEnumerateInstanceExtensionProperties</strong>相同，在Instance小节中讨论过。</p>
+<pre><code class="language-cpp  line-numbers">bool checkValidationLayerSupport() {
+    uint32_t layerCount;
+    vkEnumerateInstanceLayerProperties(&amp;layerCount, nullptr);    std::vector&lt;VkLayerProperties&gt; availableLayers(layerCount);
+    vkEnumerateInstanceLayerProperties(&amp;layerCount, availableLayers.data());    return false;
+}
+</code></pre>
+<p>接下来检查<strong>validationLayers</strong>中的所有layer是否存在于<strong>availableLayers</strong>列表中。我们需要使用<strong>strcmp</strong>引入<strong><cstring></strong>。</p>
+<pre><code class="language-cpp  line-numbers">for (const char* layerName : validationLayers) {
+    bool layerFound = false;    for (const auto&amp; layerProperties : availableLayers) {
+        if (strcmp(layerName, layerProperties.layerName) == 0) {
+            layerFound = true;
+            break;
+        }
+    }    if (!layerFound) {
+        return false;
+    }
+}return true;
+</code></pre>
+<p>现在我们在<code>createInstance</code>函数中使用:</p>
+<pre><code class="language-cpp  line-numbers">void createInstance() {
+    if (enableValidationLayers &amp;&amp; !checkValidationLayerSupport()) {
+        throw std::runtime_error("validation layers requested, but not available!");
+    }    ...
+}
+</code></pre>
+<p>现在以调试模式运行程序，并确保不会发生错误。如果发生错误，请确保正确安装<code>Vulkan SDK</code>。如果没有或者几乎没有<code>layers</code>上报，建议使用最新的SDK，或者到<strong>LunarG官方</strong>寻求帮助,需要注册帐号。</p>
+<p>最终，修改<strong>VkInstanceCreateInfo</strong>结构体，填充当前上下文已经开启的validation layers名称集合。</p>
+<pre><code class="language-cpp  line-numbers">if (enableValidationLayers) {
+    createInfo.enabledLayerCount = static_cast&lt;uint32_t&gt;(validationLayers.size());
+    createInfo.ppEnabledLayerNames = validationLayers.data();
+} else {
+    createInfo.enabledLayerCount = 0;
+}
+</code></pre>
+<p>如果检查成功，<strong>vkCreateInstance</strong>不会返回<strong>VK_ERROR_LAYER_NOT_PRESENT</strong>错误，请确保程序运行正确无误。</p>
+<h2 id="ftoc-heading-3" class="ftwp-heading">消息回调</h2>
+<p>比较遗憾的是单纯开启<code>validation layers</code>是没有任何帮助的，因为到现在没有任何途径将诊断信息回传给应用程序。要接受消息，我们必须设置回调，需要<strong>VK_EXT_debug_report</strong>扩展。</p><div id="eaa_after_nth_p" class="eaa-wrapper eaa_after_nth_p eaa_mobile"><div class="eaa-ad  "></div></div>
+<p>我们新增一个<strong>getRequiredExtensions</strong>函数，该函数将基于是否开启<code>validation layers</code>返回需要的扩展列表。</p>
+<pre><code class="language-cpp  line-numbers">std::vector&lt;const char*&gt; getRequiredExtensions() {
+    std::vector&lt;const char*&gt; extensions;    unsigned int glfwExtensionCount = 0;
+    const char** glfwExtensions;
+    glfwExtensions = glfwGetRequiredInstanceExtensions(&amp;glfwExtensionCount);    for (unsigned int i = 0; i &lt; glfwExtensionCount; i++) {
+        extensions.push_back(glfwExtensions[i]);
+    }    if (enableValidationLayers) {
+        extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+    }    return extensions;
+}
+</code></pre>
+<p>GLFW的扩展总是需要的，而<code>debug report</code>扩展是根据编译条件添加。与此同时我们使用<strong>VK_EXT_DEBUG_REPORT_EXTENSION_NAME</strong>宏定义，它等价字面值 &#8220;VK_EXT_debug_report&#8221;，使用宏定义避免了硬编码。</p>
+<p>我们在<strong>createInstance</strong>函数中调用:</p>
+<pre><code class="language-cpp  line-numbers">auto extensions = getRequiredExtensions();
+createInfo.enabledExtensionCount = static_cast&lt;uint32_t&gt;(extensions.size());
+createInfo.ppEnabledExtensionNames = extensions.data();
+</code></pre>
+<p>运行程序确保没有收到<strong>VK_ERROR_EXTENSION_NOT_PRESENT</strong>错误信息，我们不需要去验证扩展是否存在，因为它会被有效的<code>validation layers</code>引擎的验证。</p>
+<p>现在让我们看一下<code>callback</code>函数的样子，添加一个静态函数<strong>debugCallback</strong>,并使用<strong>PFN_vkDebugReportCallbackEXT</strong> 原型进行修饰。<strong>VKAPI_ATTR</strong>和<strong>VKAPI_CALL</strong>确保了正确的函数签名，从而被Vulkan调用。</p>
+<pre><code class="language-cpp  line-numbers">static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+    VkDebugReportFlagsEXT flags,
+    VkDebugReportObjectTypeEXT objType,
+    uint64_t obj,
+    size_t location,
+    int32_t code,
+    const char* layerPrefix,
+    const char* msg,
+    void* userData) {    std::cerr &lt;&lt; "validation layer: " &lt;&lt; msg &lt;&lt; std::endl;    return VK_FALSE;
+}
+</code></pre>
+<p>函数的第一个参数指定了消息的类型，它可以通过一下任意标志位组合:<br />
+<img src="image/img.geek-docs.com/vulkan/vulkan-tutorial/201907282239.png" alt="Vulkan Validation layers" title="Vulkan Validation layers" /></p>
+<p><strong>objType</strong>参数描述作为消息主题的对象的类型，比如一个<strong>obj</strong>是<strong>VkPhysicalDevice</strong>，那么<strong>objType</strong>就是<strong>VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT</strong>。这样做被允许是因为Vulkan的内部句柄都被定义为<strong>uint64_t</strong>。<strong>msg</strong>参数包含指向消息的指针。最后，有一个<strong>userData</strong>参数可将自定义的数据进行回调。</p>
+<p>回调返回一个布尔值，表明触发<code>validation layer</code>消息的<code>Vulkan</code>调用是否应被中止。如果返回true，则调用将以<strong>VK_ERROR_VALIDATION_FAILED_EXT</strong>错误中止。这通常用于测试<code>validation layers</code>本身，所以我们总是返回<strong>VK_FALSE</strong>。</p>
+<p>现在需要告知<code>Vulkan</code>关于定义的回调函数。也许你会比较惊讶，即使是debug 回调也需要一个明确的创建和销毁句柄的管理工作。添加一个类成员存储回调句柄，在<strong>instance</strong>下。</p>
+<pre><code class="language-cpp  line-numbers">VkDebugReportCallbackEXT callback;
+</code></pre>
+<p>现在添加一个函数<strong>setupDebugCallback</strong>,该函数会在<strong>initVulkan</strong>函数 调用<strong>createInstance</strong>之后调用。</p>
+<pre><code class="language-cpp  line-numbers">void initVulkan() {
+    createInstance();
+    setupDebugCallback();
+}void setupDebugCallback() {
+    if (!enableValidationLayers) return;}
+</code></pre>
+<p>现在我们填充有关回调的结构体详细信息:</p>
+<pre><code class="language-cpp  line-numbers">VkDebugReportCallbackCreateInfoEXT createInfo = {};
+createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+createInfo.flags = - VK_DEBUG_REPORT_ERROR_BIT_EXT | - VK_DEBUG_REPORT_WARNING_BIT_EXT;
+createInfo.pfnCallback = debugCallback;
+</code></pre>
+<p>标志位允许过滤掉你不希望的消息。<strong>pfnCallback</strong>字段描述了回调函数的指针。在这里可以有选择的传递一个<strong>pUserData</strong>指针，最为回调的自定义数据结构使用，比如可以传递<strong>HelloTriangleApplication</strong>类的指针。</p>
+<p>该结构体应该传递给<strong>vkCreateDebugReportCallbackEXT</strong>函数创建<strong>VkDebugReportCallbackEXT</strong>对象。不幸的是，因为这个功能是一个扩展功能，它不会被自动加载。所以必须使用<strong>vkGetInstanceProcAddr</strong>查找函数地址。我们将在后台创建代理函数。在<strong>HelloTriangleApplication</strong>类定义之上添加它。</p>
+<pre><code class="language-cpp  line-numbers">VkResult CreateDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback) {
+    auto func = (PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
+    if (func != nullptr) {
+        return func(instance, pCreateInfo, pAllocator, pCallback);
+    } else {
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+}
+</code></pre>
+<p>如果函数无法加载，则<strong>vkGetInstanceProcAddr</strong>函数返回<code>nullptr</code>。如果非<code>nullptr</code>，就可以调用此函数来创建扩展对象:</p>
+<pre><code class="language-cpp  line-numbers">if (CreateDebugReportCallbackEXT(instance, &amp;createInfo, nullptr, &amp;callback) != VK_SUCCESS) {
+    throw std::runtime_error("failed to set up debug callback!");
+}
+</code></pre>
+<p>倒数第二个参数仍然是分配器回调指针，我们仍然设置为<code>nullptr</code>。debug回调与<code>Vulkan instance</code>和<code>layers</code>相对应，所以需要明确指定第一个参数。现在运行程序，关闭窗口，你会在命令行看到提示信息:<br />
+<strong>validation layer: Debug Report callbacks not removed before DestroyInstance</strong><br />
+现在Vulkan已经在程序中发现了一个错误!需要通过调用<strong>vkDestroyDebugReportCallbackEXT</strong>清理<strong>VkDebugReportCallbackEXT</strong>对象。与<strong>vkCreateDebugReportCallbackEXT</strong>类似，该函数需要显性的加载。在<strong>CreateDebugReportCallbackEXT</strong>下创建另一个代理函数。</p>
+<pre><code class="language-cpp  line-numbers">void DestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT callback, const VkAllocationCallbacks* pAllocator) {
+    auto func = (PFN_vkDestroyDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT");
+    if (func != nullptr) {
+        func(instance, callback, pAllocator);
+    }
+}
+</code></pre>
+<p>该函数定义为类静态函数或者外部函数，我们在cleanup函数中进行调用:</p><div id="eaa_after_nth_p_1" class="eaa-wrapper eaa_after_nth_p_1 eaa_mobile"><div class="eaa-ad  "></div></div>
+<pre><code class="language-cpp  line-numbers">void cleanup() {
+    DestroyDebugReportCallbackEXT(instance, callback, nullptr);
+    vkDestroyInstance(instance, nullptr);    glfwDestroyWindow(window);    glfwTerminate();
+}
+</code></pre>
+<p>再次运行程序，会看到错误信息已经消失。如果要查看哪个调用触发了一条消息，可以向消息回调添加断点，并查看堆栈调用链。</p>
+<h2 id="ftoc-heading-4" class="ftwp-heading">配置</h2>
+<p><code>Validation layers</code>的行为可以有更多的设置，不仅仅是<strong>VkDebugReportCallbackCreateInfoEXT</strong>结构中指定的标志位信息。浏览<code>Vulkan SDK</code>的<strong>Config</strong>目录。找到<strong>vk_layer_settings.txt</strong>文件，里面有说明如何配置<code>layers</code>。</p>
+<p>要为自己的应用程序配置<code>layers</code>，请将文件赋值到项目的<strong>Debug</strong>和<strong>Release</strong>目录，然后按照说明设置需要的功能特性。除此之外，本教程将使用默认的设置。</p>
+<h2 id="ftoc-heading-5" class="ftwp-heading">源代码</h2>
+<pre><code class="language-cpp  line-numbers">// validation_layers.cpp
+#define GLFW_INCLUDE_VULKAN
+#include &lt;GLFW/glfw3.h&gt;#include &lt;iostream&gt;
+#include &lt;stdexcept&gt;
+#include &lt;vector&gt;
+#include &lt;cstring&gt;
+#include &lt;cstdlib&gt;const int WIDTH = 800;
+const int HEIGHT = 600;const std::vector&lt;const char*&gt; validationLayers = {
+    "VK_LAYER_KHRONOS_validation"
+};#ifdef NDEBUG
+const bool enableValidationLayers = false;
+#else
+const bool enableValidationLayers = true;
+#endifVkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+    } else {
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+}void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        func(instance, debugMessenger, pAllocator);
+    }
+}class HelloTriangleApplication {
+public:
+    void run() {
+        initWindow();
+        initVulkan();
+        mainLoop();
+        cleanup();
+    }private:
+    GLFWwindow* window;    VkInstance instance;
+    VkDebugUtilsMessengerEXT debugMessenger;    void initWindow() {
+        glfwInit();        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);        window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+    }    void initVulkan() {
+        createInstance();
+        setupDebugMessenger();
+    }    void mainLoop() {
+        while (!glfwWindowShouldClose(window)) {
+            glfwPollEvents();
+        }
+    }    void cleanup() {
+        if (enableValidationLayers) {
+            DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+        }        vkDestroyInstance(instance, nullptr);        glfwDestroyWindow(window);        glfwTerminate();
+    }    void createInstance() {
+        if (enableValidationLayers &amp;&amp; !checkValidationLayerSupport()) {
+            throw std::runtime_error("validation layers requested, but not available!");
+        }        VkApplicationInfo appInfo = {};
+        appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+        appInfo.pApplicationName = "Hello Triangle";
+        appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+        appInfo.pEngineName = "No Engine";
+        appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+        appInfo.apiVersion = VK_API_VERSION_1_0;        VkInstanceCreateInfo createInfo = {};
+        createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        createInfo.pApplicationInfo = &amp;appInfo;        auto extensions = getRequiredExtensions();
+        createInfo.enabledExtensionCount = static_cast&lt;uint32_t&gt;(extensions.size());
+        createInfo.ppEnabledExtensionNames = extensions.data();        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+        if (enableValidationLayers) {
+            createInfo.enabledLayerCount = static_cast&lt;uint32_t&gt;(validationLayers.size());
+            createInfo.ppEnabledLayerNames = validationLayers.data();            populateDebugMessengerCreateInfo(debugCreateInfo);
+            createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &amp;debugCreateInfo;
+        } else {
+            createInfo.enabledLayerCount = 0;            createInfo.pNext = nullptr;
+        }        if (vkCreateInstance(&amp;createInfo, nullptr, &amp;instance) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create instance!");
+        }
+    }    void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT&amp; createInfo) {
+        createInfo = {};
+        createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        createInfo.pfnUserCallback = debugCallback;
+    }    void setupDebugMessenger() {
+        if (!enableValidationLayers) return;        VkDebugUtilsMessengerCreateInfoEXT createInfo;
+        populateDebugMessengerCreateInfo(createInfo);        if (CreateDebugUtilsMessengerEXT(instance, &amp;createInfo, nullptr, &amp;debugMessenger) != VK_SUCCESS) {
+            throw std::runtime_error("failed to set up debug messenger!");
+        }
+    }    std::vector&lt;const char*&gt; getRequiredExtensions() {
+        uint32_t glfwExtensionCount = 0;
+        const char** glfwExtensions;
+        glfwExtensions = glfwGetRequiredInstanceExtensions(&amp;glfwExtensionCount);        std::vector&lt;const char*&gt; extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);        if (enableValidationLayers) {
+            extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        }        return extensions;
+    }    bool checkValidationLayerSupport() {
+        uint32_t layerCount;
+        vkEnumerateInstanceLayerProperties(&amp;layerCount, nullptr);        std::vector&lt;VkLayerProperties&gt; availableLayers(layerCount);
+        vkEnumerateInstanceLayerProperties(&amp;layerCount, availableLayers.data());        for (const char* layerName : validationLayers) {
+            bool layerFound = false;            for (const auto&amp; layerProperties : availableLayers) {
+                if (strcmp(layerName, layerProperties.layerName) == 0) {
+                    layerFound = true;
+                    break;
+                }
+            }            if (!layerFound) {
+                return false;
+            }
+        }        return true;
+    }    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
+        std::cerr &lt;&lt; "validation layer: " &lt;&lt; pCallbackData-&gt;pMessage &lt;&lt; std::endl;        return VK_FALSE;
+    }
+};int main() {
+    HelloTriangleApplication app;    try {
+        app.run();
+    } catch (const std::exception&amp; e) {
+        std::cerr &lt;&lt; e.what() &lt;&lt; std::endl;
+        return EXIT_FAILURE;
+    }    return EXIT_SUCCESS;
+}
+</code></pre>
+</p></div>		</article>
+		<div class="asb asb-m aub-post aub-post-02">
+						            <div class="post-actions">
+            	<a href="javascript:;" etap="like" class="post-like action action-like" data-pid="3160"><i class="fa fa-thumbs-o-up"></i>赞(<span>9</span>)</a>            	            	            </div>
+        				
+		
+		<div class="article-tags"></div>
+		
+		
+		<div class="relates relates-thumb"><div class="title"><h3>猜你喜欢</h3></div><ul><li><a href="support-vulkan-game.html"><img data-src="image/img.geek-docs.com/vulkan/201911161129.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的游戏|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li><li><a href="support-vulkan-gpu.html"><img data-src="image/img.geek-docs.com/vulkan/201911112317.jpg?x-oss-process=style/4-3-thumb" alt="支持Vulkan的GPU|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="vulkan-basic-types.html"><img data-src="image/img.geek-docs.com/vulkan/201911100840.jpg?x-oss-process=style/4-3-thumb" alt="Vulkan 基本类型|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li><a href="vulkan-visual-studio-environment-configuration.html"><img data-src="image/img.geek-docs.com/vulkan/201910191450.png?x-oss-process=style/4-3-thumb" alt="Vulkan Visual Studio环境配置|极客教程" src="image/wp-content/themes/dux/img/thumbnail.png" class="thumb"></a><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li></ul></div>				<div class="title" id="comments">
+	<h3>评论 <b>1</b></h3>
+</div>
+<div id="respond" class="no_webshot">
+		
+	<form action="https://geek-docs.com/wp-comments-post.php" method="post" id="commentform">
+		<div class="comt">
+			<div class="comt-title">
+				<img alt='' data-src='https://secure.gravatar.com/avatar/?s=50&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/?s=100&#038;d=mm&#038;r=g 2x' class='avatar avatar-50 photo avatar-default' height='50' width='50' />				<p><a rel="nofollow" id="cancel-comment-reply-link" href="javascript:;">取消</a></p>
+			</div>
+			<div class="comt-box">
+				<textarea placeholder="你的评论可以一针见血" class="input-block-level comt-area" name="comment" id="comment" cols="100%" rows="3" tabindex="1" onkeydown="if(event.ctrlKey&amp;&amp;event.keyCode==13){document.getElementById('submit').click();return false};"></textarea>
+				<div class="comt-ctrl">
+					<div class="comt-tips"><input type='hidden' name='comment_post_ID' value='3160' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+<label for="comment_mail_notify" class="checkbox inline hide" style="padding-top:0"><input type="checkbox" name="comment_mail_notify" id="comment_mail_notify" value="comment_mail_notify" checked="checked"/>有人回复时邮件通知我</label></div>
+					<button type="submit" name="submit" id="submit" tabindex="5">提交评论</button>
+					<!-- <span data-type="comment-insert-smilie" class="muted comt-smilie"><i class="icon-thumbs-up icon12"></i> 表情</span> -->
+				</div>
+			</div>												<div class="comt-comterinfo" id="comment-author-info" >
+						<ul>
+							<li class="form-inline"><label class="hide" for="author">昵称</label><input class="ipt" type="text" name="author" id="author" value="" tabindex="2" placeholder="昵称"><span class="text-muted">昵称 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="email">邮箱</label><input class="ipt" type="text" name="email" id="email" value="" tabindex="3" placeholder="邮箱"><span class="text-muted">邮箱 (必填)</span></li>
+							<li class="form-inline"><label class="hide" for="url">网址</label><input class="ipt" type="text" name="url" id="url" value="" tabindex="4" placeholder="网址"><span class="text-muted">网址</span></li>
+						</ul>
+					</div>
+									</div>	</form>
+	</div>
+<div id="postcomments">
+	<ol class="commentlist">
+		<li class="comment even thread-even depth-1" id="comment-2228"><span class="comt-f">#1</span><div class="comt-avatar"><img alt='' data-src='https://secure.gravatar.com/avatar/31bec9ce2f2358e6537f64cd50610480?s=50&#038;d=mm&#038;r=g' srcset='https://secure.gravatar.com/avatar/31bec9ce2f2358e6537f64cd50610480?s=100&#038;d=mm&#038;r=g 2x' class='avatar avatar-50 photo' height='50' width='50' /></div><div class="comt-main" id="div-comment-2228"><p>VK_LAYER_LUNARG_standard_validaction已经被废弃，新版本使用VK_LAYER_KHRONOS_validation层代替。</p>
+<div class="comt-meta"><span class="comt-author">水台良月</span>1年前 (2021-06-09)<a rel='nofollow' class='comment-reply-link' href="javascript:;" onclick='return addComment.moveForm( "div-comment-2228", "2228", "respond", "3160" )' aria-label='回复给水台良月'>回复</a></div></div></li><!-- #comment-## -->
+	</ol>
+	<div class="pagenav">
+			</div>
+</div>
+	</div>
+	</div></div>
+    <div class="tblside">
+    <div class="tblside-roll">
+		<h3>Vulkan 教程</h3><ul><li><a href="index.html">Vulkan 教程</a></li><li><a href="what-is-vulkan.html">什么是 Vulkan</a></li><li><a href="vulkan-development-environment-built-on-windows.html">Vulkan 开发环境搭建之Windows</a></li><li><a href="vulkan-understand-instance.html">Vulkan 创建Vulkan实例</a></li><li><a href="vulkan-physical-devices-and-queue-clusters.html">Vulkan 物理设备与队列</a></li><li><a href="vulkan-application-framework-prototype.html">Vulkan 应用程序框架原型</a></li><li class="active"><a href="understand-validation-layers.html">Vulkan 验证层</a></li><li><a href="vulkan-logical-devices-and-queues.html">Vulkan 逻辑设备与队列</a></li><li><a href="vulkan-exchange-of-chain.html">Vulkan 交换链</a></li><li><a href="vulkan-window-surface.html">Vulkan Window Surface</a></li><li><a href="vulkan-graphic-pipeline.html">Vulkan 图形管线</a></li><li><a href="vulkan-images-and-views.html">Vulkan 图像与视图</a></li><li><a href="vulkan-shader-modules.html">Vulkan 着色器模块</a></li><li><a href="vulkan-fixed-functions.html">Vulkan 固有功能</a></li><li><a href="vulkan-framebuffers.html">Vulkan 帧缓冲区</a></li><li><a href="vulkan-integration-pipeline.html">Vulkan 集成管线</a></li><li><a href="vulkan-render-passes.html">Vulkan 渲染通道</a></li><li><a href="vulkan-command-buffers.html">Vulkan 命令缓冲区</a></li><li><a href="vulkan-rendering-and-presentation.html">Vulkan 渲染和显示</a></li><li><a href="vulkan-reconstructed-commutative-chain.html">Vulkan 重构交换链</a></li><li><a href="vertex-input-description.html">Vulkan 顶点输入</a></li><li><a href="vertex-buffer-creation.html">Vulkan 创建顶点缓冲区</a></li><li><a href="vulkan-staging-buffer.html">Vulkan 临时缓冲区</a></li><li><a href="vulkan-index-buffer.html">Vulkan 索引缓冲区</a></li><li><a href="vulkan-descriptor-layout-and-buffer.html">Vulkan 描述符布局和缓冲区</a></li><li><a href="vulkan-descriptor-pool-and-sets.html">Vulkan 描述符池和集合</a></li><li><a href="vulkan-images.html">Vulkan 图像(Images)</a></li><li><a href="vulkan-image-view-and-sampler.html">Vulkan 图像视图和采样器</a></li><li><a href="combined-image-sampler.html">Vulkan 组合图像取样器</a></li><li><a href="vulkan-depth-buffering.html">Vulkan 深度缓冲区</a></li><li><a href="loading-models.html">Vulkan 加载模型</a></li><li><a href="vulkan-generating-mipmaps.html">Vulkan 生成贴图(mipmap)</a></li><li><a href="vulkan-multisampling.html">Vulkan 多重采样(Multisampling)</a></li><li><a href="vulkan-and-opengl.html">Vulkan和OpenGL区别</a></li><li><a href="vulkan-visual-studio-environment-configuration.html">Vulkan Visual Studio环境配置</a></li><li><a href="vulkan-basic-types.html">Vulkan 基本类型</a></li><li><a href="support-vulkan-gpu.html">支持Vulkan的GPU</a></li><li><a href="support-vulkan-game.html">支持Vulkan的游戏</a></li></ul>    </div>
+	  		<div class="widget widget_recent_entries" id="recent-posts-3">		<h3>最新文章</h3>	
+					
+		</div></div>
+<div class="tbrside">
+<nav>
+<div id="geekdocs-fixed"></div>
+	
+</nav>
+</div>
+</section><footer class="footer">
+	<div class="container">
+							</div>
+</footer><div class="rollbar rollbar-rb"><ul><li class="rollbar-totop"><a href="javascript:(jsui.scrollTo());"><i class="fa fa-angle-up"></i><span>回顶</span></a><h6>回顶部<i></i></h6></li></ul></div>
+<script>
+window.jsui={
+	www: 'https://geek-docs.com',
+	uri: 'https://geek-docs.com/wp-content/themes/dux',
+	ver: '6.0',
+	roll: ["1","2","3"],
+	ajaxpager: '5',
+	url_rp: 'https://geek-docs.com/'
+};
+</script>
+        <!--[if lte IE 9]>
+        <script>
+            'use strict';
+            (function($) {
+                $(document).ready(function() {
+                    $('#ftwp-container').addClass('ftwp-ie9');
+                });
+            })(jQuery);
+        </script>
+        <![endif]-->
+		<link rel='stylesheet' id='prism-theme-style-css'  href='css/prism-hopscotch.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-toolbar-css'  href='css/prism-toolbar.min.css?ver=1.15.0' type='text/css' media='all' />
+<link rel='stylesheet' id='prism-plugin-line-numbers-css'  href='css/prism-line-numbers.min.css?ver=1.15.0' type='text/css' media='all' />
+<script type='text/javascript' src='js/jquery.min.js?ver=1.12.4'></script>
+<script type='text/javascript' src='js/katex.min.js?ver=0.10.0-beta'></script>
+<script type='text/javascript' src='js/bootstrap.min.js?ver=6.0'></script>
+<script type='text/javascript' src='js/loader.js?ver=6.0'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var q2w3_sidebar_options = [{"sidebar":"q2w3-default-sidebar","margin_top":10,"stop_id":"","screen_max_width":0,"screen_max_height":0,"width_inherit":false,"refresh_interval":1500,"window_load_hook":false,"disable_mo_api":false,"widgets":["geekdocs-fixed"]}];
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/q2w3-fixed-widget.min.js?ver=5.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var fixedtocOption = {"showAdminbar":"","inOutEffect":"zoom","isNestedList":"1","isColExpList":"1","showColExpIcon":"1","isAccordionList":"","isQuickMin":"1","isEscMin":"1","isEnterMax":"1","fixedMenu":"","scrollOffset":"10","fixedOffsetX":"10","fixedOffsetY":"0","fixedPosition":"middle-left","contentsFixedHeight":"","inPost":"","contentsFloatInPost":"left","contentsWidthInPost":"0","contentsHeightInPost":"","contentsColexpInitMobile":"1","inWidget":"","fixedWidget":"","triggerBorder":"medium","contentsBorder":"thin","triggerSize":"50","isClickableHeader":"","debug":"","postContentSelector":"#ftwp-postcontent","mobileMaxWidth":"768","disappearPoint":"content-bottom"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/ftoc.min.js?ver=3.1.24'></script>
+<script type='text/javascript' src='js/hoverIntent.min.js?ver=1.8.1'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var megamenu = {"timeout":"300","interval":"100"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='js/maxmegamenu.js?ver=2.9.7'></script>
+<script type='text/javascript' src='js/wp-embed.min.js?ver=4.9.20'></script>
+<script type='text/javascript' src='js/prism-core.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-autoloader.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-toolbar.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-line-numbers.min.js?ver=1.15.0'></script>
+<script type='text/javascript' src='js/prism-show-language.min.js?ver=1.15.0'></script>
+		<script type="text/javascript">
+            (function ($) {
+                $(document).ready(function () {
+                    $(".katex.math.inline").each(function () {
+                        var parent = $(this).parent()[0];
+                        if (parent.localName !== "code") {
+                            var texTxt = $(this).text();
+                            var el = $(this).get(0);
+                            try {
+                                katex.render(texTxt, el);
+                            } catch (err) {
+                                $(this).html("<span class=\'err\'>" + err);
+                            }
+                        } else {
+                            $(this).parent().text($(this).parent().text());
+                        }
+                    });
+                    $(".katex.math.multi-line").each(function () {
+                        var texTxt = $(this).text();
+                        var el = $(this).get(0);
+                        try {
+                            katex.render(texTxt, el, {displayMode: true})
+                        } catch (err) {
+                            $(this).html("<span class=\'err\'>" + err)
+                        }
+                    });
+                })
+            })(jQuery);
+		</script>
+				<script type="text/javascript">
+			Prism.plugins.autoloader.languages_path = "http://cdn.bootcss.com/prism/1.15.0/components/"
+		</script>
+		</body></html>
